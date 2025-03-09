@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        .progress-bar {
+            -webkit-transition: none !important;
+            transition: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row" id="app">
+                        <div class="col-12  grid-margin"
+                            v-if="(node.stats?.mem_used >= 100 || node.stats?.disk_used >= 100) && !unsavedChanges">
+                            <div class="alert alert-danger rounded-0 border-0 m-0">
+                                <h3>{ :m_warning }</h3>
+                                <p>{ :m_out_of_resources }</p>
+                            </div>
+                        </div>
+                        <div class="col-12 grid-margin" v-if="node.stats?.limit == 0 && !unsavedChanges">
+                            <div class="alert alert-warning rounded-0 border-0 m-0">
+                                <h3>{ :m_warning }</h3>
+                                <p>{ :m_no_limit }</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <p class="card-description">
+                                        { :m_general }
+                                    </p>
+                                    <div>
+                                        <div class="row mt-5">
+                                            <div class="col-12">
+                                                <div class="row col-12">
+                                                    <p class="font-weight-bold">{{ node.name }}</p><br>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span><small>CPU</small><small class="float-right"><span
+                                                                    id="c-cpu">{{ getNodeCpu(node.id) }}</span>% of
+                                                                <span id="max-cpu">{{ getNodeCpuTotal(node.id) }}</span>
+                                                                CPU(S)</small></span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                id="cpu-progress"
+                                                                v-bind:style="{ width: getNodeCpu(node.id) + '%'}"
+                                                                :aria-valuenow="getNodeCpu(node.id)" aria-valuemin="0"
+                                                                aria-valuemax="100"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <span><small>RAM</small><small class="float-right"><span
+                                                                    id="c-ram">{{ getNodeRamPercent(node.id) }}</span>%
+                                                                ({{getNodeRam(node.id) }} GiB)
+                                                                { :m_of } <span
+                                                                    id="max-ram">{{ getNodeRamTotal(node.id) }}</span>
+                                                                GiB</small></span>
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar"
+                                                                id="ram-progress"
+                                                                v-bind:style="{ width: getNodeRamPercent(node.id) + '%'}"
+                                                                :aria-valuenow="getNodeRamPercent(node.id)"
+                                                                aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-3" v-if="node.stats">
+                                                    <div class="col-md-6">
+                                                        <p class="mt-3 font-weight-bold">{ :m_provisioned_usage }:</p>
+                                                        <span><small>RAM</small><small class=" float-right">
+                                                                <span>{{ (node.stats.mem_used).toFixed(2) }}</span>%</small></span>
+                                                        <div class="progress mb-3">
+                                                            <div class="progress-bar " role="progressbar"
+                                                                :class="{ 'bg-danger': node.stats.mem_used >= 100, 'bg-warning': node.stats.mem_used >= 80}"
+                                                                id="used-ram"
+                                                                v-bind:style="{ width: (node.stats.mem_used).toFixed(2) + '%'}"
+                                                                :aria-valuenow="(node.stats.mem_used).toFixed(2)"
+                                                                aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                        <span><small>Disk</small><small
+                                                                class="float-right"><span>{{ (node.stats.disk_used).toFixed(2) }}</span>%</small></span>
+                                                        <div class="progress mb-3">
+                                                            <div class="progress-bar" role="progressbar" id="used-ram"
+                                                                :class="{ 'bg-danger': node.stats.disk_used >= 100, 'bg-warning': node.stats.disk_used >= 80}"
+                                                                v-bind:style="{ width: (node.stats.disk_used).toFixed(2) + '%'}"
+                                                                :aria-valuenow="(node.stats.disk_used).toFixed(2)"
+                                                                aria-valuemin="0" aria-valuemax="100"></div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 mt-3">
+                                                        <p class="mt-3 font-weight-bold">Limit:</p>
+                                                        <div class="d-flex">
+                                                            <input class="w-25 form-control" type="number" name="limit"
+                                                                id="" v-model="node.stats.newLimit"
+                                                                @input="changeLimit">
+                                                            <input class="ml-2" v-model="node.stats.newLimit"
+                                                                style="width: 100%" type="range" min="0" max="100"
+                                                                @input="changeLimit">
+                                                        </div>
+                                                        <button class="btn btn-success float-right"
+                                                            :disabled="!unsavedChanges" @click="saveLimit"
+                                                            :class="{ 'disabled': !unsavedChanges}">{ :m_save }</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6 p-2">
+                                                <line-chart v-if="charts.cpu" chart-id="cpuChart"
+                                                    :chart-data="loadCpuChart().chart" :options="loadCpuChart().options"
+                                                    style="height: 200px;"></line-chart>
+                                            </div>
+                                            <div class="col-12 col-md-6 p-2">
+                                                <line-chart v-if="charts.ram" chart-id="ramChart"
+                                                    :chart-data="loadRamChart().chart" :options="loadRamChart().options"
+                                                    style="height: 200px;"></line-chart>
+                                            </div>
+                                            <div class="col-12 col-md-6 p-2">
+                                                <line-chart v-if="charts.network" chart-id="networkChart"
+                                                    :chart-data="loadNetworkChart().chart"
+                                                    :options="loadNetworkChart().options" style="height: 200px;">
+                                                </line-chart>
+                                            </div>
+                                            <div class="col-12 col-md-6 p-2">
+                                                <line-chart v-if="charts.storage" chart-id="storageChart"
+                                                    :chart-data="loadStorageGraph().chart"
+                                                    :options="loadStorageGraph().options" style="height: 200px;">
+                                                </line-chart>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script>
+        const selectedNode = "{ :node }";
+    </script>
+    <script type="module">
+        Vue.component('line-chart', {
+            mixins: [VueChartJs.mixins.reactiveProp],
+            extends: VueChartJs.Line,
+            props: ['options'],
+            mounted () {
+                this.renderChart(this.chartData, this.options)
+            },
+        })
+
+        var app = new Vue({
+            components: {
+            },
+            el: '#app',
+            data: {
+                node: {},
+                nodeinfo: {},
+                charts: [],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        point:{
+                            radius: 0
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'timeseries',
+                            time: {
+                                tooltipFormat: 'H:mm',
+                                unit: 'minute',
+                                minUnit: 'minute',
+                                displayFormats: {
+                                    'millisecond': 'H:mm',
+                                    'second': 'H:mm',
+                                    'minute': 'H:mm',
+                                    'hour': 'H:mm',
+                                    'day': 'H:mm',
+                                    'week': 'H:mm',
+                                    'month': 'H:mm',
+                                    'quarter': 'H:mm',
+                                    'year': 'H:mm',
+                                }
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                maxRotation: 0,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    hover: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    }
+                },
+                unsavedChanges: false,
+                initialStats: {}
+            },
+            created: async function () {
+                await this.loadData();
+                await this.loadInfo();
+                setInterval(function () {
+                    this.loadInfo();
+                }.bind(this), 2500);
+            },
+            methods: {
+                changeLimit: function() {
+                    // (20 * .96) / 30
+                    // (oldLimit * percentage) / newLimit
+                    const newLimit = this.node.stats.newLimit;
+                    let oldLimit = this.node.stats.limit;
+
+                    if (oldLimit == 0) {
+                        oldLimit = this.initialStats.limit;
+                        this.node.stats.mem_used = this.initialStats.mem_used;
+                        this.node.stats.disk_used = this.initialStats.disk_used;
+                    }
+
+                    if (newLimit == 0) {
+                        this.node.stats.mem_used = 100;
+                        this.node.stats.disk_used = 100;
+                    } else {
+                        this.node.stats.mem_used = (oldLimit * this.node.stats.mem_used) / newLimit;
+                        this.node.stats.disk_used = (oldLimit * this.node.stats.disk_used) / newLimit;
+                    }
+
+                    this.node.stats.limit = newLimit;
+                    this.unsavedChanges = true;
+                },
+                getInfo: function (id) {
+                    if (!this.nodeinfo) {
+                        return data = {
+                            cpu: 0,
+                            maxcpu: 0,
+                            mem: 0,
+                            maxmem: 0
+                        }
+                    }
+                    return this.nodeinfo;
+                },
+                getNodeCpu: function (id) {
+                    if (!this.getInfo(id)) return 0;
+                    return (this.getInfo(id).cpu * 100).toFixed(2);
+                },
+                getNodeCpuTotal: function (id) {
+                    return this.getInfo(id).maxcpu;
+                },
+                getNodeRam: function (id) {
+                    return (this.getInfo(id).mem / Math.pow(1024, 3)).toFixed(2)
+                },
+                getNodeRamTotal: function (id) {
+                    return (this.getInfo(id).maxmem  / Math.pow(1024, 3)).toFixed(2);
+                },
+                getNodeRamPercent: function (id) {
+                    let filtered = this.getInfo(id);
+                    return ((filtered.mem / filtered.maxmem) * 100).toFixed(2);
+                },
+                saveLimit: async function() {
+                    const res = await $.post('{ :app_url }api/admin/settings/createNoteLimit', {
+                        node: this.node.name,
+                        limit: this.node.stats.limit
+                    }); 
+                    toastr.success('{ :m_saved }');
+                    this.unsavedChanges = false;
+                    await this.loadData()
+                },
+                loadData: async function () {
+                    let data = await $.get('{ :app_url }api/admin/host/status').then(data => {
+                        return data.data
+                    });
+                    data = Object.values(data).filter(ele => ele.type === "node");
+                    this.node = data.find((ele) => ele.name == selectedNode);
+                    this.node.stats.newLimit = this.node.stats.limit;
+                    this.initialStats = { ...this.node.stats };
+                },
+                loadInfo: async function () {
+                    let info = await $.get('{ :app_url }api/admin/host/graph').then(data => {
+                        return data.data
+                    });
+                    info = info.find(ele => ele.type == "node" && ele.node == selectedNode);
+                    let charts = {};
+                    let graph = await this.getChartData(selectedNode);
+                   
+
+                    let cpu = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: 'CPU',
+                                backgroundColor: 'rgba(220,53,69, 0.5)',
+                                data: graph.map(ele => ((ele.cpu ?? 0) * 100).toFixed(2))
+                            }
+                        ]
+                    };
+
+                    let ram = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: '{ :m_ram_used }',
+                                backgroundColor: 'rgba(255,193,7, 0.5)',
+                                data: graph.map(ele => ((ele.memused ?? 0) / Math.pow(1024, 3)).toFixed(2))
+                            },
+                            {
+                                fill: 'origin',
+                                label: '{ :m_ram_available }',
+                                data: graph.map(ele => ((ele.memtotal ?? 0) / Math.pow(1024, 3)).toFixed(2))
+                            }
+                        ]
+                    };
+
+                    let network = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: 'Netin',
+                                backgroundColor: 'rgba(51,181,229, 0.5)',
+                                data: graph.map(ele => (ele.netin ? (ele.netin / 1000000 ) : 0).toFixed(2)),
+                                order: 2,
+                                label: 'Netin (MB/s) '
+                            },
+                            {
+                                fill: 'origin',
+                                label: 'Netout',
+                                backgroundColor: 'rgba(0,200,81, 0.5)',
+                                data: graph.map(ele => (ele.netout ? (ele.netout / 1000000 ) : 0).toFixed(2)),
+                                order: 1,
+                                label: 'Netout (MB/s) '
+                            }
+                        ]
+                    }
+
+                    let storage = {
+                        labels: graph.map(e => e.time),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: '{ :m_storage_available }',
+                                data: graph.map(ele => ((ele.storageMetrics.total ?? 0) / 1000000000).toFixed(2)),
+                                label: '{ :m_storage_available } (GB)'
+                            },
+                            {
+                                fill: 'origin',
+                                label: '{ :m_storage_used }',
+                                data: graph.map(ele => ((ele.storageMetrics.used ?? 0) / 1000000000).toFixed(2)),
+                                backgroundColor: 'rgba(0,200,81, 0.5)',
+                                label: '{ :m_storage_used } (GB)'
+                            }
+                        ]
+                    }
+
+                    this.charts = {
+                        cpu, 
+                        ram, 
+                        network, 
+                        storage
+                    };
+                    this.nodeinfo = info;
+                },
+                async getChartData(node) {
+                    let info = await $.get('{ :app_url }api/admin/host/usage/' + node).then(data => {
+                        return data.data
+                    });
+                    return info;
+                },
+                loadCpuChart: function() {
+                    return { chart: this.charts.cpu, options: {
+                        ...this.options,
+                        scales: {
+                            ...this.options.scales,
+                            y: {
+                                suggestedMin: 0,
+                                suggestedMax: 100,
+                            },
+                        },
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y + ' %';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                        }
+                    }};
+                },
+                loadRamChart: function() {
+                    return { chart: this.charts.ram, options: {
+                        ...this.options,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += context.parsed.y + ' GiB';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                        }
+                    }};
+                },
+                loadNetworkChart: function () {
+                    return { chart: this.charts.network, options: {
+                        ...this.options,
+                        scales: {
+                            ...this.options.scales,
+                            y: {
+                                min: 0,
+                            },
+                        },
+                    }}
+                },
+                loadStorageGraph: function () {
+                    return { chart: this.charts.storage, options: {
+                        ...this.options
+                    }}
+                }
+            }
+        });
+    </script>
+
+</body>
+
+</html>

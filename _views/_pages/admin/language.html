@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - Language</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Language</h4>
+                                    <div class="table-responsive">
+                                        <button class="btn btn-success float-right" onclick="save();">
+                                            { :m_btn_save }</button>
+                                        { foreach :v in :raw with :k }
+                                        <h4>{ :k }</h4>
+                                        <table class="table table-striped mt-3 mb-3">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        Key
+                                                    </th>
+
+                                                    <th style="width: 50%">
+                                                        Value
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                { foreach :vv in :v with :kk }
+                                                <tr>
+                                                    <td>{ :kk }</td>
+                                                    <td>
+                                                        <?php if ($vv['type'] == 'textarea'): ?>
+                                                        <textarea id="{ :k }--{ :kk }" rows="{ :vv.rows }"
+                                                            class="form-control"><?= htmlentities(html_entity_decode($vv['t']));  ?></textarea>
+                                                        <?php elseif ($vv['type'] == 'input'): ?>
+                                                        <input id="{ :k }--{ :kk }" type="text"
+                                                            value="<?= htmlentities(html_entity_decode($vv['t']));  ?>"
+                                                            class="form-control">
+                                                        <?php elseif ($vv['type'] == 'disabled'): ?>
+                                                        { endif }
+                                                    </td>
+                                                </tr>
+                                                { endforeach }
+                                            </tbody>
+                                        </table>
+                                        { endforeach }
+                                        <button class="btn btn-success float-right" onclick="save();">
+                                            { :m_btn_save }</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script>
+        const save = () => {
+            // find all inputs
+            let res = {};
+            let inputs = $('input, textarea');
+
+
+            inputs.map((ele) => {
+                res[$(inputs[ele]).attr('id')] = $(inputs[ele]).val();
+            });
+            $.post('{ :app_url }api/admin/save-language', res, (data) => {
+                console.log(data);
+                toastr.success('Saved');
+            })
+        }
+    </script>
+</body>
+
+</html>

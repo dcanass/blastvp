@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <style>
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <!-- <button class="btn btn-secondary float-right" data-toggle="modal"
+                                        data-target="#migrationModal">{ :m_migration_title }</button> -->
+                                    <button v-if="isAdmin" class="mr-2 btn btn-secondary float-right"
+                                        @click="showImportModal = true">
+                                        { :m_import_btn }</button>
+                                    <p class="card-description">
+                                        { :m_desc }
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-2 mb-2">
+                                            <small>{ :m_search }</small>
+                                            <input type="text" class="form-control" v-model="searchInput">
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="table-responsive" id="server-tables" v-if="!serversLoading">
+                                                <table class="table table-hover" v-if="servers.length > 0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>
+                                                                { :m_tbl_3 }
+                                                            </th>
+                                                            <th>
+                                                                { :m_tbl_2 }
+                                                            </th>
+                                                            <th>
+                                                                { :m_tbl_4 }
+                                                            </th>
+                                                            <th>{ :m_price }</th>
+                                                            <th>
+                                                                { :m_tbl_5 }
+                                                            </th>
+                                                            <th>
+                                                                { :m_tbl_6 }
+                                                            </th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="server in servers" :key="server.id"
+                                                            @click="gotoServer(server.id)">
+                                                            <td>
+                                                                <span v-tooltip="server._status"
+                                                                    class="status-indicator" :class="{ 
+                                                                                online: server.status == 'online', 
+                                                                                offline: server.status == 'offline', 
+                                                                                suspended: server.status == 'suspended',
+                                                                                loading: ['starting', 'stopping'].includes(server.status)
+                                                                }"></span>
+                                                                <span v-tooltip="`VMID: ${server.vmid}`">{{
+                                                                    server.hostname }}</span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="link" v-tooltip="server.user.email"
+                                                                    @click.stop="gotoUser(server.user.id)">{{
+                                                                    server.user.name }}</span>
+                                                            </td>
+                                                            <td>
+                                                                <span v-if="server.ip">{{ server.ip }}</span><span
+                                                                    v-if="server.ip && server.ip6"> / </span><span
+                                                                    v-if="server.ip6">{{server.ip6}}</span>
+                                                            </td>
+                                                            <td>{{server.priceFormatted}}</td>
+                                                            <td>
+                                                                {{ server.nextPayment | formatDate }}
+                                                            </td>
+                                                            <td>
+                                                                {{ server.createdAt | formatDate }}
+                                                            </td>
+                                                            <td>
+                                                                <button class="btn btn-secondary btn-sm" v-if="isAdmin"
+                                                                    @click.stop="editServer(server)">
+                                                                    { :m_edit_btn }</button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div v-else>
+                                                    <p>{ :m_no_servers }</p>
+                                                </div>
+                                                <pagination class="mt-4" v-model="serverPaging.page"
+                                                    :records="serverPaging.count" :per-page="serverPaging.size"
+                                                    :options="{ theme: 'bootstrap4', edgeNavigation: true, texts: { count: '{ :m_pagination_default }', first: '{ :m_pagination_first }', last: '{ :m_pagination_last }' } }">
+                                                </pagination>
+                                            </div>
+                                            <div v-else class="text-center">
+                                                <spinner></spinner>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- edit modal -->
+                    <modal class="modal fade" :show="editContext !== null" @hide="editContext = null"
+                        title="{ :m_edit_title }" close-text="{ :m_close_btn }">
+                        <template #body v-if="editContext != null">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p>{ :m_import_cores }:</p>
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" v-model="editContext.cpu" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p>RAM (in MB):</p>
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" v-model="editContext.ram" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p>{ :m_import_disk } (in GB):</p>
+                                </div>
+                                <div class="col-6">
+                                    <input type="text" v-model="editContext.disk" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="" class="col-form-label">{ :m_node }</label>
+                                        <select v-model="editContext.node" class="form-control">
+                                            <?php foreach ($node_limits as $k => $v): ?>
+                                            <option value="{ :k }">{ :k }</option>
+                                            { endforeach }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input v-model="editContext.applyChanges" type="checkbox"
+                                                class="form-check-input" checked />
+                                            { :m_apply_in_proxmox }
+                                            <i class="input-helper"></i>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="" class="col-form-label">{ :m_price }</label>
+                                        <input type="number" v-model="editContext.price" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="" class="col-form-label">{ :m_tbl_2 }</label>
+                                        <select v-model="editContext.userid" class="form-control">
+                                            <option :value="user.id" v-for="user in users">{{ user.username }}
+                                                ({{ user.email }})</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <hr>
+                                <div class="col-12">
+                                    <h5>Actions</h5>
+                                    <button class="btn btn-warning ml-0 mr-auto" @click="confirmUnlink = true">
+                                        <i class="mdi mdi-pin-off-outline"></i> { :m_unlink }</button>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-success" @click="_saveEdit()">
+                                { :m_edit_save }</button>
+                        </template>
+                    </modal>
+
+                    <modal :stacked="true" :show="confirmUnlink" @hide="confirmUnlink = false" title="{ :m_warning }"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <p>{ :m_unlink_confirm }</p>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-danger" @click="unlinkServer">{ :m_yes }</button>
+                        </template>
+                    </modal>
+
+                    <!-- import modal  -->
+                    <modal class="modal fade" :show="showImportModal" @hide="showImportModal = false"
+                        title="{ :m_import_btn }" close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="row" id="alertBox" v-if="importError !== false">
+                                <div class="mx-auto col-11 alert alert-warning">
+                                    <p>{{importError}}</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label for="" class="col-form-label">{ :m_node }</label>
+                                        <select v-model="importContext.node" class="form-control">
+                                            <?php foreach ($node_limits as $k => $v): ?>
+                                            <option value="{ :k }">{ :k }</option>
+                                            { endforeach }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="" class="col-form-label">VMID</label>
+                                        <input v-model="importContext.vmid" type="number" class="form-control"
+                                            placeholder="VMID">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="col-form-label">&nbsp;</label>
+                                        <button class="btn btn-primary form-control" @click="readInfo">
+                                            { :m_import_load_info }</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <p>{ :m_tbl_3 }:</p>
+                                </div>
+                                <div class="col-6">
+                                    <p id="iName">{{ importInfo ? importInfo.config.name : "..." }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p>{ :m_import_cores }:</p>
+                                </div>
+                                <div class="col-6">
+                                    <p>{{ importInfo ? importInfo.config.cores : "..." }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p>RAM:</p>
+                                </div>
+                                <div class="col-6">
+                                    <p>{{ importInfo ? importInfo.config.memory : "..." }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p>{ :m_import_disk }:</p>
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-control" v-model="importContext.disk">
+                                        <option :value="null" disabled>{ :m_select }</option>
+                                        <option :value="drive.k" v-for="drive in importDriveOptions">{{ drive.v }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active show" id="network-tab" data-toggle="tab"
+                                                href="#network" type="button" role="tab" aria-controls="network"
+                                                aria-selected="true">
+                                                { :m_network_general }
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" role="presentation"
+                                            v-if="['ip4', 'dualstack'].includes(importContext.deploymentType)">
+                                            <button class="nav-link" id="ipv4-tab" data-toggle="tab" href="#ipv4"
+                                                type="button" role="tab" aria-controls="ipv4" aria-selected="false">
+                                                { :m_ip4 }</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation"
+                                            v-if="['ip6', 'dualstack'].includes(importContext.deploymentType)">
+                                            <button class="nav-link" id="ipv6-tab" data-toggle="tab" href="#ipv6"
+                                                type="button" role="tab" aria-controls="ipv6" aria-selected="false">
+                                                { :m_ip6 }</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="tab-content" id="myTabContent">
+                                <div class="tab-pane fade show active" id="network" role="tabpanel"
+                                    aria-labelledby="network-tab">
+                                    <div class="row mt-2">
+                                        <div class="alert alert-warning m-2" id="networkNotice" style="display: none;">
+                                            <p class="text-center m-0"></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p>{ :m_ipam_deployment }:</p>
+                                        </div>
+                                        <div id="ip_deployment" class="col-6">
+                                            <div class="form-group">
+                                                <select v-model="importContext.deploymentType" class=" form-control">
+                                                    <option value="null">{ :m_save_no_config }</option>
+                                                    <?php foreach (\Module\BaseModule\Controllers\IPAM\IPAM::$DEP_OPTIONS as $k => $v): ?>
+                                                    <option value="{ :k }">
+                                                        <?= ${$v['lang']} ?>
+                                                    </option>
+                                                    { endforeach }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="ipv4" role="tabpanel" aria-labelledby="ipv4-tab">
+                                    <div class="row mt-2">
+                                        <div class="col-12 form-group">
+                                            <label class="col-form-label">Network Interface</label>
+                                            <select v-model="importContext.ipv4Net" class="form-control">
+                                                <option value="null" disabled>{ :m_select }</option>
+                                                <option v-for="n in importNetworkDevices" :value="n.k">{{n.v}}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 row" v-if="importIp4Info">
+                                            <div class="col-6">
+                                                <p>{ :m_ip4 }:</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p id="iIP">{{ importIp4Info.ip ?? '...' }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p>{ :m_add_gateway }</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p id="iGateway">{{ importIp4Info.gateway ?? '...' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" v-else>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="alert alert-primary">
+                                                        <p>No IP-Configuration found in cloud-init data. Please either
+                                                            update the cloud-init configuration inside Proxmox or
+                                                            manually
+                                                            enter the IP and Gateway here.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p>{ :m_ip4 }:</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" placeholder="10.21.35.21/32"
+                                                        v-model="importContext.ipv4Overwrite.ip" class="form-control">
+                                                </div>
+                                                <div class="col-6">
+                                                    <p>{ :m_add_gateway }</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" placeholder="10.21.35.1" class="form-control"
+                                                        v-model="importContext.ipv4Overwrite.gateway">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="ipv4_addresses" class="col-12">
+                                            <div class="form-group">
+                                                <label class="col-form-label">{ :m_ip4_ranges }:</label>
+                                                <select v-model="importContext.ipv4Overwrite.ipam" id="ipv4_range"
+                                                    class="form-control">
+                                                    <option :value="null">{ :m_select }</option>
+                                                    <?php foreach ($ipam_4 as $k => $v): ?>
+                                                    <option :value="{ :v.id }">{ :v.start } - { :v.end } (Gw:
+                                                        { :v.gateway }) - { :v.percentage }%</option>
+                                                    { endforeach }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="ipv6" role="tabpanel" aria-labelledby="ipv6-tab">
+                                    <div class="row mt-2">
+                                        <div class="col-12 form-group">
+                                            <label class="col-form-label">Network Interface</label>
+                                            <select v-model="importContext.ipv6Net" class="form-control">
+                                                <option value="null" disabled>{ :m_select }</option>
+                                                <option v-for="n in importNetworkDevices" :value="n.k">{{n.v}}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 row" v-if="importIp6Info">
+                                            <div class="col-6">
+                                                <p>{ :m_ip6 }:</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p id="iIP">{{ importIp6Info.ip ?? '...' }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p>{ :m_add_gateway }</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p id="iGateway">{{ importIp6Info.gateway ?? '...' }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" v-else>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="alert alert-primary">
+                                                        <p>No IP-Configuration found in cloud-init data. Please either
+                                                            update the cloud-init configuration inside Proxmox or
+                                                            manually
+                                                            enter the IP and Gateway here.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p>{ :m_ip6 }:</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" placeholder="2a01:4f9:3a:1003::/64"
+                                                        v-model="importContext.ipv6Overwrite.ip" class="form-control">
+                                                </div>
+                                                <div class="col-6">
+                                                    <p>{ :m_add_gateway }</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" placeholder="2a01:4f9:3a:1003::1"
+                                                        v-model="importContext.ipv6Overwrite.gateway"
+                                                        class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="ipv6_addresses" class="col-12">
+                                            <div class="form-group">
+                                                <label class="col-form-label">{ :m_ip6_ranges }:</label>
+                                                <select v-model="importContext.ipv6Overwrite.ipam" id="ipv6_range"
+                                                    class="form-control">
+                                                    <option :value="null">{ :m_select }</option>
+                                                    <?php foreach ($ipam_6 as $k => $v): ?>
+                                                    <option :value="{ :v.id }">{ :v.network }/{ :v.prefix } (Gw:
+                                                        { :v.gateway }) - { :v.percentage }%</option>
+                                                    { endforeach }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="col-form-label">{ :m_import_user }</label>
+                                        <select v-model="importContext.user" class="form-control">
+                                            <option value="null" disabled>{ :m_select }</option>
+                                            <option v-for="u in users" :value="u.id">{{u.username}} ({{u.email}})
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-success"
+                                :class="{ 'btn-disabled': importIsValid !== true }" :disabled="importIsValid !== true"
+                                v-tooltip="importIsValid !== true ? importIsValid : ''" @click="importFinish">
+                                { :m_import_btn_finalize }</button>
+                        </template>
+                    </modal>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <div class="modal fade" id="migrationModal" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold">{ :m_migrate }</h4>
+                    <button type="button" class="close" onclick="closeMigrationDialog()" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div id="migrationStep1">
+                        <div class="row">
+                            <div class="col-12">
+                                <p>{ :m_select_source }</p>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="" class="col-form-label">Source Node</label>
+                                    <select name="migrationSourceNode" id="migrationSourceNode" class="form-control">
+                                        <?php foreach ($node_limits as $k => $v): ?>
+                                        <option value="{ :k }">{ :k }</option>
+                                        { endforeach }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="migrationStep2" style="display: none;">
+                        <div class="row">
+                            <div class="col-12">
+                                <p>{ :m_select_server }</p>
+                            </div>
+                            <div class="col-12" id="migrationServers">
+                                <div class="form-group">
+                                    <label for="" class="col-form-label">Server</label>
+                                    <select name="migrationServer" id="migrationServer" class="form-control">
+
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="migrationStep3" style="display: none;">
+                        <div class="row">
+                            <div class="col-12">
+                                <p>{ :m_select_target }</p>
+                            </div>
+                            <div class="col-12">
+                                <div class="col-12 form-check">
+                                    <input type="checkbox" id="migrationWithLocalDisks" class="form-check-input"
+                                        checked>
+                                    <label class="form-check-label" for="migrationWithLocalDisks">
+                                        { :m_migration_storage }</label>
+                                </div>
+                                <div class="col-12 form-check">
+                                    <input type="checkbox" id="migrationLive" class="form-check-input" checked>
+                                    <label class="form-check-label" for="migrationLive">
+                                        { :m_migration_live }
+                                    </label>
+                                </div>
+                                <div class="col-12 form-check">
+                                    <input type="checkbox" id="reattachCloudInit" class="form-check-input" checked>
+                                    <label class="form-check-label" for="reattachCloudInit">
+                                        { :m_migration_cloudinit }</label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="" class="col-form-label">{ :m_node }</label>
+                                    <select name="migrationTargetNode" id="migrationTargetNode" class="form-control">
+                                        <?php foreach ($node_limits as $k => $v): ?>
+                                        <option value="{ :k }">{ :k }</option>
+                                        { endforeach }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" onclick="closeMigrationDialog()">
+                        { :m_import_close }</button>
+                    <button type="button" class="btn btn-success" id="migrationBtn" onclick="migrationNextPage()">
+                        { :m_migration_next }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="migrationDoneModal" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold">{ :m_migration_title }</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row col-12 m-0 mb-2" id="migrationDoneText"></div>
+                    <div class="row col-12 m-0" id="migrationDoneLog">
+                        <code style="white-space: pre-line"></code>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">
+                        { :m_import_close }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    { include("_views/partials/_success-modal.html") }
+
+    { include("_views/partials/_loading-modal.html") }
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import '{ :app_url }js/components/filters.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        import '{ :app_url }js/components/pagination.js'
+        import Spinner from '{ :app_url }js/components/spinner.js'
+
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        var app = new Vue({
+            components: { Pagination, Spinner, Modal },
+            el: "#app",
+            data: {
+                loading: true,
+                servers: [],
+                serverPaging: {
+                    page: 1,
+                    count: 0,
+                    size: 10,
+                },
+                serversLoading: true,
+                editContext: null,
+                searchInput: "",
+                users: [],
+                showImportModal: false,
+                importError: false,
+                importContext: {
+                    node: "proxmox-01",
+                    vmid: "100",
+                    user: null,
+                    name: null,
+                    cores: 1,
+                    ram: 512,
+                    disk: null,
+                    deploymentType: null,
+                    ipv4Overwrite: { ip: null, gateway: null, ipam: null },
+                    ipv6Overwrite: { ip: null, gateway: null, ipam: null },
+                    ipv4Net: null,
+                    ipv6Net: null
+                },
+                importInfo: null,
+                confirmUnlink: false
+            },
+            created: async function () {
+                await this.loadData();
+            },
+            methods: {
+                loadData: async function () {
+                    await this.loadServers();
+                    await this.loadUsers();
+                    this.loading = false;
+                },
+                loadUsers: async function () {
+                    const users = await $.get("{ :app_url }api/admin/users", {});
+                    this.users = users;
+                },
+                loadServers: async function () {
+                    this.serversLoading = true;
+                    const servers = await $.post('{ :app_url }api/admin/servers', {
+                        page: this.serverPaging.page,
+                        search: this.searchInput
+                    });
+                    this.servers = servers.data;
+                    this.serverPaging.count = servers.paging.count;
+                    this.serversLoading = false;
+                },
+                gotoServer: function (id) {
+                    window.location = `{ :app_url }server/${id}`;
+                },
+                gotoUser: function (id) {
+                    window.location = `{ :app_url }admin/users/${id}`
+                },
+                editServer: function (server) {
+                    this.editContext = { ...server, applyChanges: true };
+                },
+                _saveEdit: async function () {
+                    const result = $.post(`{ :app_url }api/host/update-server-info/${this.editContext.id}`, this.editContext);
+                    this.editContext = null;
+                    await toastr.promise(result, '{ :m_loading }', '{ :m_edit_done_text }', '{ :m_error }')
+                    await this.loadServers();
+                },
+                unlinkServer: async function () {
+                    const id = this.editContext.id;
+
+                    // unlink
+                    const result = $.post(`{ :app_url }api/host/update-server-info/${this.editContext.id}`, {
+                        id,
+                        unlink: true
+                    });
+                    await toastr.promise(result, '{ :m_loading }', '{ :m_done }', '{ :m_error }')
+
+                    this.confirmUnlink = false;
+                    this.editContext = null;
+                    await this.loadData();
+                },
+                readInfo: async function () {
+                    const data = await $.post('{ :app_url }api/host/load-vm-info', this.importContext);
+
+                    if (data.error) {
+                        this.importError = data.msg === "exists" ? "{ :m_import_exists }" : '{ :m_import_not_found }';
+                        return;
+                    } else {
+                        this.importError = false;
+                    }
+                    this.importInfo = data;
+                    /** assign statics **/
+                    this.importContext.name = data.config.name;
+                    this.importContext.cores = data.config.cores ?? 1;
+                    this.importContext.ram = data.config.memory ?? 512;
+                },
+                importFinish: async function () {
+                    const ipv4Info = {
+                        ip: null,
+                        ipam: null
+                    };
+
+                    const ipv6Info = {
+                        ip: null,
+                        ipam: null
+                    };
+
+                    if (["dualstack", "ip4"].includes(this.importContext.deploymentType)) {
+                        ipv4Info.ipam = this.importContext.ipv4Overwrite.ipam;
+                        // when no network device is selected, we need to make sure manual values are provided
+                        if (this.importIp4Info.ip && this.importIp4Info.gateway) {
+                            ipv4Info.ip = this.importIp4Info.ip;
+                        } else {
+                            ipv4Info.ip = this.importContext.ipv4Overwrite.ip;
+                        }
+                    }
+
+                    if (["dualstack", "ip6"].includes(this.importContext.deploymentType)) {
+                        // when no network device is selected, we need to make sure manual values are provided
+                        ipv6Info.ipam = this.importContext.ipv6Overwrite.ipam;
+                        // when no network device is selected, we need to make sure manual values are provided
+                        if (this.importIp6Info.ip && this.importIp6Info.gateway) {
+                            ipv6Info.ip = this.importIp6Info.ip;
+                        } else {
+                            ipv6Info.ip = this.importContext.ipv6Overwrite.ip;
+                        }
+                    }
+
+                    const res = $.post('{ :app_url }api/host/import-server', {
+                        node: this.importContext.node,
+                        vmid: this.importContext.vmid,
+                        user: this.importContext.user,
+                        name: this.importContext.name,
+                        cores: this.importContext.cores ?? 1,
+                        ram: this.importContext.ram ?? 512,
+                        disk: this.importContext.disk,
+                        deploymentType: this.importContext.deploymentType,
+                        ipv4Info,
+                        ipv6Info
+                    });
+
+                    await toastr.promise(res, "{ :m_loading }", "{ :m_import_done }", "{ :m_error }")
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin(),
+                importDriveOptions: function () {
+                    if (!this.importInfo) return [];
+                    let drives = Object.keys(this.importInfo.config).filter((e) => /(scsi|ide|sata|virtio)(\d+)/.test(e));
+                    drives = drives.map((drive) => {
+                        // blockstorage:113/vm-113-disk-0.qcow2,size=33764148K
+                        let disk = this.importInfo.config[drive].split(',');
+                        // blockstorage:113/vm-113-disk-0.qcow2 => vm-113-disk-0.qcow2
+                        if (disk[0] == "none") return false; // filter out none disks.
+                        // check if there is a / in the name, otherwise we need to split at ":"
+                        let splitter = ":";
+                        if (disk[0].indexOf('/') !== -1) {
+                            splitter = "/";
+                        }
+                        let name = disk[0].split(splitter)[1];
+                        if (this.importInfo.config.bootdisk == drive) drive = `[BOOT] ${drive}`
+                        // size=33764148K => [size=33764148K, 33764148, K]
+                        // with filter, since there can be a media=cdrom for cloud-init drives.
+                        let _unit = disk.filter((e) => /size=(\d+)(G|M|K)?/.test(e))
+                        // filter out where no size attribute is given
+                        if (!_unit || _unit.length == 0) return false;
+
+                        _unit = _unit[0].match(/size=(\d+)(G|M|K)?/);
+                        const sizeRaw = _unit ? _unit[1] : 0;
+                        const unitRaw = _unit[2] ? _unit[2] : false;
+
+                        // convert sizeRaw to actual GiB...
+                        let size = 0;
+                        let unit = "B";
+                        switch (unitRaw) {
+                            case "G":
+                                size = sizeRaw;
+                                unit = "GiB";
+                                break;
+                            case "M":
+                                size = (sizeRaw / 1024).toFixed(4);
+                                unit = "MiB";
+                                break;
+                            case "K":
+                                size = (sizeRaw / 1024 / 1024).toFixed(4);
+                                unit = "KiB";
+                                break;
+                            default:
+                                size = (sizeRaw / 1024 / 1024 / 1024).toFixed(4);
+                                unit = "B";
+                                break;
+                        }
+
+                        return {
+                            k: size,
+                            v: `${drive}, ${name} (${size} GiB - ${sizeRaw} ${unitRaw ? unit : ""})`
+                        }
+                    })
+                    drives = drives.filter(Boolean);
+                    if (drives.length === 1) this.importContext.disk = drives[0].k
+                    return drives;
+                },
+                importNetworkDevices: function () {
+                    if (!this.importInfo) return [];
+                    let nets = Object.keys(this.importInfo.config).filter((e) => /(net)(\d+)/.test(e));
+                    nets = nets.map(e => {
+                        const adapter = this.importInfo.config[e];
+                        // split at ',' in k-v pairs
+                        const info = adapter.split(",");
+
+                        const findMac = info.find(a => /(e1000|e1000\-82540em|e1000\-82544gc|e1000\-82545em|e1000e|i82551|i82557b|i82559er|ne2k_isa|ne2k_pci|pcnet|rtl8139|virtio|vmxnet3)=(.*)/.test(a));
+                        const findBridge = info.find(a => /bridge=/.test(a));
+                        if (!findMac || !findBridge) return false;
+
+                        return {
+                            k: e,
+                            v: `MAC: ${findMac.split("=").at(-1)} - Bridge: ${findBridge.split("=").at(-1)}`
+                        };
+                    });
+                    if (nets.length == 1) {
+                        this.importContext.ipv4Net = nets[0].k;
+                        this.importContext.ipv6Net = nets[0].k;
+                    }
+                    return nets;
+
+                },
+                importIp4Info: function () {
+                    if (!this.importContext.ipv4Net) return {
+                        ip: null,
+                        gateway: null
+                    };
+
+                    // extract digit from netX
+                    const digit = this.importContext.ipv4Net.match(/(\d+)$/)[0];
+                    const key = "ipconfig" + digit;
+
+                    if (!this.importInfo.config[key]) return false;
+
+                    let splitted = this.importInfo.config[key].split(',');
+
+                    // check if this server has an ipv4 configuration.
+                    // if ip is included in the configuration, there sure is something set
+                    let ip = splitted.filter(e => /ip=.*/.test(e));
+                    let gateway = null
+                    if (ip && ip.length > 0) {
+                        ip = ip[0].match(/ip=(.*)/)[1];
+                        gateway = splitted.filter(e => /gw=.*/.test(e))[0].match(/gw=(.*)/)[1];
+                    }
+                    return {
+                        ip: ip,
+                        gateway
+                    }
+                },
+                importIp6Info: function () {
+                    if (!this.importContext.ipv6Net) return {
+                        ip: null,
+                        gateway: null
+                    };
+
+                    // extract digit from netX
+                    const digit = this.importContext.ipv6Net.match(/(\d+)$/)[0];
+                    const key = "ipconfig" + digit;
+
+                    if (!this.importInfo.config[key]) return false;
+
+                    let splitted = this.importInfo.config[key].split(',');
+
+                    // check if this server has an ipv4 configuration.
+                    // if ip is included in the configuration, there sure is something set
+                    let ip = splitted.filter(e => /ip6=.*/.test(e));
+                    let gateway = "..."
+                    if (ip && ip.length > 0) {
+                        ip = ip[0].match(/ip6=(.*)/)[1];
+                        gateway = splitted.filter(e => /gw6=.*/.test(e))[0].match(/gw6=(.*)/)[1];
+                    }
+                    return {
+                        ip: ip,
+                        gateway
+                    }
+                },
+                importIsValid: function () {
+                    // make sure the node, vmid & name are set
+                    if (!this.importContext.node || !this.importContext.vmid || !this.importContext.name) return "Missing information";
+
+                    // make sure that a disk is selected
+                    if (!this.importContext.disk) return "{ :m_import_missing_disk }";
+
+                    // make sure ip-info is set when selected
+                    if (["dualstack", "ip4"].includes(this.importContext.deploymentType)) {
+                        // when no network device is selected, we need to make sure manual values are provided
+                        if (!this.importContext.ipv4Net) {
+                            // check if overwrite values are set
+                            return "{ :m_import_missing_ip4_interface }";
+                        }
+                        if ((!this.importIp4Info.ip || !this.importIp4Info.gateway) && (!this.importContext.ipv4Overwrite.ip || !this.importContext.ipv4Overwrite.gateway)) {
+                            return "{ :m_import_missing_ip4_assigment }";
+                        }
+
+                        if (!this.importContext.ipv4Overwrite.ipam) {
+                            return "{ :m_import_missing_ip4_ipam }"
+                        }
+                    }
+
+                    if (["dualstack", "ip6"].includes(this.importContext.deploymentType)) {
+                        // when no network device is selected, we need to make sure manual values are provided
+                        if (!this.importContext.ipv6Net) {
+                            // check if overwrite values are set
+                            return "{ :m_import_missing_ip4_interface }";
+                        }
+                        if ((!this.importIp6Info.ip || !this.importIp6Info.gateway) && (!this.importContext.ipv6Overwrite.ip || !this.importContext.ipv6Overwrite.gateway)) {
+                            return "{ :m_import_missing_ip4_assigment }";
+                        }
+
+                        if (!this.importContext.ipv6Overwrite.ipam) {
+                            return "{ :m_import_missing_ip4_ipam }"
+                        }
+                    }
+
+                    if (!this.importContext.user) return "{ :m_import_missing_user }"
+
+                    return true;
+                }
+            },
+            watch: {
+                serverPaging: {
+                    handler() {
+                        this.loadServers();
+                    },
+                    deep: true
+                },
+                searchInput: {
+                    handler() {
+                        this.loadServers();
+                    }
+                }
+            }
+        })
+    </script>
+    <script>
+        migrationStep = 1;
+        migrationNextPage = () => {
+            if (migrationStep == 1) {
+                $("#migrationStep1").hide();
+                // load servers from node
+                $.get('{ :app_url }api/admin/servers-by-node/' + $("#migrationSourceNode").val(), (data) => {
+                    $("#migrationServer").empty();
+                    data[0].forEach(element => {
+                        $("#migrationServer").append(
+                            `<option value="${element.vmid}">${element.hostname} (${element.vmid})</option>`
+                        );
+                    });
+                })
+                $("#migrationStep2").show();
+                migrationStep = 2;
+            } else
+                if (migrationStep == 2) {
+                    $("#migrationStep2").hide();
+                    $("#migrationStep3").show();
+                    $("#migrationBtn").text('{ :m_migrate }');
+                    migrationStep = 3;
+                } else
+                    if (migrationStep == 3) {
+                        $("#loadingModal").modal('show');
+                        $.post('{ :app_url }api/admin/server-migration', {
+                            'source': $("#migrationSourceNode option:selected").val(),
+                            'target': $("#migrationTargetNode option:selected").val(),
+                            'vmid': $("#migrationServer option:selected").val(),
+                            'with-local-disks': $("#migrationWithLocalDisks").attr('checked') == "checked",
+                            'live-migration': $("#migrationLive").attr('checked') == "checked",
+                            'reattach-cloud-init': $("#reattachCloudInit").attr('checked') == "checked"
+                        }, (data) => {
+                            $("#loadingModal").modal('hide');
+                            showResModal(data.output);
+                        })
+                    }
+        }
+
+        showResModal = (output) => {
+            $("#migrationDoneModal").modal('show');
+            $("#migrationDoneLog code").empty();
+            if (output.success) {
+                $("#migrationDoneText").text(
+                    '{ :m_migration_noerr }'
+                );
+            } else {
+                $("#migrationDoneText").text(
+                    '{ :m_migration_err }');
+            }
+            output.log.data.forEach(log => {
+
+                $("#migrationDoneLog code").append(log.t + '\n');
+            })
+        }
+
+        closeMigrationDialog = () => {
+            migrationStep = 1;
+            $("#migrationStep2").hide();
+            $("#migrationStep3").hide();
+            $("#migrationStep1").show();
+            $("#migrationBtn").text('{ :m_migration_next }');
+            $("#migrationModal").modal('hide');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <style>
+        .progress-bar {
+            -webkit-transition: none !important;
+            transition: none !important;
+        }
+
+        .input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            transition: color 0.15s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-md-12 grid-margin strech-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h2 class="card-title">{ :m_title }</h2>
+                                    <p class="card-description">{ :m_general }</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    { if :show_configurator }
+                    <div class="row">
+                        <div class="col-lg-6 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form class="form-sample">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_hostname }</label>
+                                                    <div class="col-sm-9">
+                                                        <input type="text" id="hostname" class="form-control"
+                                                            placeholder="hostname">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_password }</label>
+                                                    <div class="col-sm-9 ">
+                                                        <div class="input-icon">
+                                                            <input id="password" type="password" class="form-control"
+                                                                placeholder="password" autocomplete="new-password">
+                                                            <i class="mdi mdi-dice-5 generate-random-password-button"
+                                                                data-toggle="tooltip" data-placement="top"
+                                                                onclick="generateSecurePassword(event)"
+                                                                title="{ :m_gen_pw }"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">
+                                                        { :m_confirm_password }</label>
+                                                    <div class="col-sm-9">
+                                                        <input id="confirm_password" type="password"
+                                                            class="form-control" placeholder="{ :m_confirm_password }">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_ssh }</label>
+                                                    <div class="col-sm-9">
+                                                        <select name="ssh" id="ssh" class="form-control">
+                                                            <option value="0" selected="selected">
+                                                                { :m_select }
+                                                            </option>
+                                                            { foreach :k in :ssh_keys }
+                                                            <option value="{ :k.id }">{ :k.name }</option>
+                                                            { endforeach }
+                                                            <option value="createNew">{ :m_create_ssh }</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_os }</label>
+                                                    <div class="col-sm-9">
+                                                        <select id="os-select"
+                                                            class="form-control input-oses-here"></select>
+                                                    </div>
+                                                    { if :showCreationTime }
+                                                    <div class="col-sm-9 offset-3 font-weight-light"
+                                                        style="display: none;" id="creationTimeWrapper">
+                                                        <small><i class="mdi mdi-information"></i> { :m_creation_time }
+                                                    </div>
+                                                    { endif }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <small id="showMoreSettings" class="text-primary"
+                                                    style="cursor: pointer;"><i class="mdi mdi-plus"></i>
+                                                    { :m_show_more_settings }</small>
+                                            </div>
+                                        </div>
+                                        <div class="row" id="showMoreSettingsBox" style="display: none;">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">
+                                                        { :m_dns_domain }</label>
+                                                    <div class="col-sm-9">
+                                                        <input id="dns_domain" type="text" class="form-control"
+                                                            placeholder="acme.internal">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">
+                                                        { :m_dns_nameservers } <i class="mdi mdi-information"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            title="{ :m_dns_nameservers_note }"></i></label>
+                                                    <div class="col-sm-9">
+                                                        <input id="dns_nameserver" type="text" class="form-control"
+                                                            placeholder="1.1.1.1 8.8.8.8">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form class="form-sample">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_disk }</label>
+                                                    <div class="col-sm-9">
+                                                        <select id="disk-select" class="form-control">
+                                                            { :d_html }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_cpu }</label>
+                                                    <div class="col-sm-9">
+                                                        <select id="cpu-select" class="form-control">
+                                                            { :c_html }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_ram }</label>
+                                                    <div class="col-sm-9">
+                                                        <select id="ram-select" class="form-control">
+                                                            { :r_html }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">{ :m_voucher } <i
+                                                            class="mdi mdi-information" data-toggle="tooltip"
+                                                            data-placement="top"
+                                                            title="{ :m_voucher_info }"></i></label>
+                                                    <div class="col-sm-9">
+                                                        <input id="voucherInput" type="text" class="form-control"
+                                                            placeholder="{ :m_voucher }">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 col-form-label">
+                                                        { :m_additional_options }</label>
+                                                    <div class="col-sm-9">
+                                                        <select id="charge-select" class="form-control">
+                                                            <option value="">-</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3" style="display: none;" id="chargesBox">
+                                            <div class="col-12">
+                                                <p>{ :m_extras_text }</p>
+                                            </div>
+                                            <div class="col-12" id="charges">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3" style="display: none;" id="optionsBox">
+                                            <div class="col-12">
+                                                <p>{ :m_additional_options }</p>
+                                            </div>
+                                            <div class="col-12" id="options">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-12">
+                                                <div class="form-group row align-items-center justify-content-around">
+                                                    <div class="col-3">
+                                                        <button class="btn btn-success" id="orderBtn"
+                                                            onclick="create();">
+                                                            { :m_order }</button>
+                                                    </div>
+                                                    <div class="col">
+                                                        <h4 class="float-right">{ :m_total } <span id="price_output">
+                                                                { :default_price }</span></h4>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    { endif }
+                    <?php if (sizeof($packages) > 0): ?>
+                    <div class="row">
+                        <div class="col-md-12 grid-margin strech-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h2 class="card-title">{ :m_preconfigured_packages }</h2>
+                                    <div class="row">
+                                        { foreach :p in :packages }
+                                        <div class="col-xl-3 col-lg-4 col-md-6 col-12 my-2">
+                                            <div class="card h-100">
+                                                <div class="card-body h-100 p-3 border rounded ">
+                                                    <h3 class=" mt-2 text-center"><u>{ :p.name }</u></h3>
+                                                    <h4 class="mt-2 text-center">
+                                                        <?= \Objects\Formatters::formatBalance($p['price']); ?>/
+                                                        { :m_monthly }
+                                                    </h4>
+                                                    <hr>
+                                                    <dl class="p-0 m-0">
+                                                        <dt>{ :m_cpu }</dt>
+                                                        <dd>{ :p.cpu } { :m_cores }</dd>
+                                                        <dt>{ :m_ram }</dt>
+                                                        <dd>{ :p.ram } GB</dd>
+                                                        <dt>{ :m_disk }</dt>
+                                                        <dd>{ :p.disk } GB</dd>
+                                                        <?php foreach ($p['meta'] as $v): ?>
+                                                        <dt>{ :v.title }</dt>
+                                                        <dd>{ :v.value }</dd>
+                                                        { endforeach }
+                                                        <?php if ($p['type'] == '2'): ?>
+                                                        <dt>{ :m_os }</dt>
+                                                        <dd>{ :p.displayName }</dd>
+                                                        { endif }
+                                                    </dl>
+                                                    <?php if ($p['type'] == '1'): ?>
+                                                    <label class="col-form-label">{ :m_os }</label>
+                                                    <select id="os-select-1"
+                                                        class="form-control input-oses-here"></select>
+                                                    { endif }
+                                                    <label class="col-form-label">{ :m_hostname }</label>
+                                                    <input class="form-control input-hostname-here" type="text"
+                                                        id="hostname-{ :p.id }" placeholder="{ :m_hostname }" />
+                                                    <label class="col-form-label">{ :m_ssh }</label>
+                                                    <select name="ssh" id="ssh" class="form-control input-ssh-here">
+                                                        <option value="0" selected="selected">
+                                                            { :m_select }
+                                                        </option>
+                                                        { foreach :k in :ssh_keys }
+                                                        <option value="{ :k.id }">{ :k.name }</option>
+                                                        { endforeach }
+                                                    </select>
+                                                    <label class="col-form-label">{ :m_password }</label>
+                                                    <div class="input-icon">
+                                                        <input class="form-control input-password-here" type="password"
+                                                            placeholder="{ :m_password }" />
+                                                        <i class="mdi mdi-dice-5 generate-random-password-button"
+                                                            data-toggle="tooltip" data-placement="top"
+                                                            onclick="generateSecurePassword(event)"
+                                                            title="{ :m_gen_pw }"></i>
+                                                    </div>
+                                                    <button class="btn btn-success w-100 mt-3" id="orderBtn"
+                                                        onclick="create('{ :p.id }');">
+                                                        { :m_order }
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        { endforeach }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    { endif }
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <div class="modal" id="orderModal" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <h2 class="font-weight-bold">{ :m_please_wait }</h2>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="row m-2 p-0">
+                        <div class="progress col-12 p-0">
+                            <div class="progress-bar" role="progressbar" id="order-progress" style="width: 0%"
+                                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="float-right mr-0 ml-auto mt-2" id="progressText">0%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12" id="thanks">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_title }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- checkmark -->
+                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="successMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="failedModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_title }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- failed -->
+                        <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                            <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                            <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                            <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="failedMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    { include("_views/partials/_loading-modal.html") }
+
+    { :createSSHModal }
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script>
+
+        $("#showMoreSettings").click(() => {
+            $("#showMoreSettingsBox").show();
+        });
+
+        $("select").change((e) => {
+            if (["os-select", "charge-select"].includes(e.currentTarget.id)) return;
+            calc();
+        });
+
+        $("#voucherInput").on('input', () => {
+            calc();
+        })
+
+        $(() => {
+            $.get('{ :app_url }api/host/load-isos', (data) => {
+                data.forEach((ele) => {
+                    $(".input-oses-here").append(new Option(ele.displayName, ele.vmid));
+                });
+                updateOptions();
+                calc();
+            });
+        });
+
+        $("#os-select").change(() => {
+            // reload specifications
+            optionalCharges = [];
+            renderOptions();
+            updateOptions();
+        });
+
+        $("#charge-select").change((e) => {
+            const val = $('#charge-select option:selected').val();
+            addToCharges(val)
+        })
+
+        const addToCharges = (e) => {
+            const charge = allConfigurableCharges.find(ea => ea.id == e);
+
+            optionalCharges = Array.from(
+                new Set([...optionalCharges.map(e => e.id), charge.id])
+            ).map(e =>
+                allConfigurableCharges.find(ea => ea.id == e)
+            );
+
+            renderOptions();
+            calc()
+        }
+
+        const remoteFromCharges = (i) => {
+            const index = optionalCharges.findIndex(e => e == i);
+            optionalCharges.splice(index, 1)
+
+            renderOptions()
+            calc()
+        }
+
+        const renderOptions = () => {
+            $("#options").empty();
+            if (optionalCharges.length > 0) {
+                $('#optionsBox').show();
+                optionalCharges.forEach((e) => {
+                    $("#options").append(`
+                        <div class="row">
+                            <div class="col-9">
+                                <small class="ml-2">${e.descriptionRaw}</small>
+                            </div>
+                            <div class="col-3 text-right">
+                                <small>` + (e.negative ? '-' : '+') + ` ${e.price}</small> <i onclick="remoteFromCharges(${e.id})" style="cursor: pointer;" class="mdi mdi-close-circle-outline"></i>
+                            </div>
+                        </div>
+                    `);
+                })
+            } else {
+                $("#optionsBox").hide();
+            }
+        }
+
+        const generateSecurePassword = (e) => {
+            const ele = $(e.currentTarget);
+            const pwField = ele.parent().find('input');
+            const rnd = generatePassword(20);
+
+            pwField.val(rnd);
+            pwField.attr('type', 'text');
+
+            if (!navigator.clipboard) {
+                const textArea = document.createElement("textarea");
+                textArea.value = rnd;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    toastr.success('{ :m_gen_pw_copied }');
+                } catch (err) {
+                    toastr.error('{ :m_gen_pw_copy_failed }')
+                }
+            } else {
+                navigator.clipboard.writeText(rnd).then(() => {
+                    toastr.success('{ :m_gen_pw_copied }');
+                }).catch((error) => {
+                    toastr.error('{ :m_gen_pw_copy_failed }')
+                })
+            }
+
+        }
+
+        function generatePassword(length) {
+            const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * charset.length);
+                password += charset[randomIndex];
+            }
+            return password;
+        }
+
+        const updateOptions = () => {
+            $.post("{ :app_url }api/order/get-specs", {
+                os: $("#os-select").val()
+            }, (data) => {
+                const disk = data.disk;
+                const cpu = data.cpu;
+                const ram = data.ram;
+
+                $("#ram-select").empty();
+                ram.map(e => {
+                    $('#ram-select').append($('<option>', {
+                        value: e.value,
+                        text: e.text,
+                        selected: e.selected
+                    }));
+                });
+                $("#disk-select").empty();
+                disk.map(e => {
+                    $('#disk-select').append($('<option>', {
+                        value: e.value,
+                        text: e.text,
+                        selected: e.selected
+                    }));
+                })
+                $("#cpu-select").empty();
+                cpu.map(e => {
+                    $('#cpu-select').append($('<option>', {
+                        value: e.value,
+                        text: e.text,
+                        selected: e.selected
+                    }));
+                })
+                calc();
+            });
+        }
+
+        let hasCreationTimes = false;
+        let creationTime = null;
+
+        let allConfigurableCharges = [];
+        let optionalCharges = [];
+
+        const calc = () => {
+            var ram = $('#ram-select').val();
+            var cpu = $('#cpu-select').val();
+            var disk = $('#disk-select').val();
+            var os = $("#os-select").val();
+            var voucher = $("#voucherInput").val();
+
+            $.post("{ :app_url }api/order/calc", {
+                cpu,
+                ram,
+                disk,
+                os,
+                voucher,
+                options: JSON.stringify(optionalCharges.map(e => e.id))
+            }, function (data) {
+
+                let price = data.price;
+                let monthly = data.rawprice;
+
+                let output = "";
+                if (price != monthly) {
+                    output = `<h3><u>${price}</u></h3><br>{ :m_monthly }: <u>${monthly}</u>`
+                } else {
+                    output = `<h3><u>${price}</u></h3>`
+                }
+
+                $("#price_output").html(output);
+
+                if (data.hasCreationTimes && Boolean("{ :showCreationTime }")) {
+                    $("#creationTimeWrapper").show();
+                    $("#creationTime").text(data.creationTime);
+                    hasCreationTimes = true;
+                    creationTime = data._creationTime;
+                } else {
+                    $("#creationTimeWrapper").hide();
+                }
+
+                $("#charges").empty();
+                if (data.charges.length > 0) {
+                    $('#chargesBox').show();
+                    data.charges.forEach((e) => {
+                        $("#charges").append(`
+                        <div class="row">
+                            <div class="col-9">
+                                <small class="ml-2">${e.description}</small>
+                            </div>
+                            <div class="col-3 text-right">
+                                <small>` + (e.negative ? '-' : '+') + ` ${e.price}</small>
+                            </div>
+                        </div>
+                    `);
+                    })
+                } else {
+                    $("#chargesBox").hide();
+                }
+
+                $("#charge-select").empty();
+                $("#charge-select").append(new Option('-', 0))
+                allConfigurableCharges = data.configurableCharges;
+                data.configurableCharges.map(e => {
+                    $("#charge-select").append(
+                        $('<option>', {
+                            text: e.description,
+                            value: e.id,
+                        })
+                    );
+                });
+            });
+        }
+
+        let intervalId = false;
+        const create = (id = null) => {
+            event.preventDefault();
+
+            var ram = $('#ram-select').val();
+            var cpu = $('#cpu-select').val();
+            var disk = $('#disk-select').val();
+            var os = $('#os-select').val();
+            var hostname = $('#hostname').val();
+            var password = $('#password').val();
+            var confirm_password = $('#confirm_password').val();
+            var ssh = $('#ssh').val() ? $("#ssh").val() : 0;
+            var voucher = $("#voucherInput").val();
+
+            if (id != null) {
+                hostname = $(event.currentTarget).parent().find('.input-hostname-here').val();
+                password = $(event.currentTarget).parent().find('.input-password-here').val();
+                ssh = $(event.currentTarget).parent().find('.input-ssh-here option:selected').val();
+                confirm_password = password;
+                os = $(event.currentTarget).parent().find('.input-oses-here').val();
+            }
+            $('#orderBtn').attr('disabled', "true");
+            if (hasCreationTimes) {
+                $("#orderModal").modal('show');
+                $("#order-progress").css('width', '0%')
+                $("#order-progress").animate({
+                    width: "100%"
+                }, creationTime * 1000, "linear");
+                intervalId = updateProgressHtmlText();
+            } else {
+                $("#loadingModal").modal('show');
+            }
+
+            $.post("{ :app_url }api/order/purchase", {
+                package: id,
+                cpu,
+                ram,
+                disk,
+                os,
+                hostname,
+                password,
+                confirm_password,
+                ssh,
+                voucher,
+                options: JSON.stringify(optionalCharges.map(e => e.id)),
+                dns_domain: $("#dns_domain").val(),
+                dns_nameserver: $('#dns_nameserver').val()
+            }, function (data) {
+                if (intervalId) {
+                    $("#order-progress").finish();
+                    clearInterval(intervalId)
+                }
+                if (data.error === true) {
+                    $("#failedMessage").text(data.message);
+                    $("#failedModal").modal('show');
+                    $("#orderModal").modal('hide');
+                } else {
+                    // no error
+                    $("#successMessage").text(data.message);
+                    $("#successModal").modal('show');
+                    $("#orderModal").modal('hide');
+                    window.setTimeout(() => {
+                        window.location = data.redirect;
+                    }, 3500);
+                }
+                $("#loadingModal").modal('hide');
+                $("#orderBtn").removeAttr('disabled');
+            });
+        }
+
+        var i = 0;
+        const updateProgressHtmlText = () => {
+            $("#progressText").text('%');
+            if (i == 0) {
+                var width = 0;
+                var id = setInterval(frame, creationTime * 10);
+
+                function frame() {
+                    if (width >= 100) {
+                        clearInterval(id);
+                        i = 0;
+                    } else {
+                        width++;
+                        $("#progressText").text(width + '%');
+                    }
+                }
+                return id;
+            }
+            return false;
+        }
+    </script>
+
+</body>
+
+</html>

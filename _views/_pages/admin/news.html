@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        .form-check .form-check-label .input-helper::after,
+        .form-check .form-check-label .input-helper::before {
+            content: none !important;
+            top: 0 !important;
+            translate: none !important;
+            transform: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-lg-12 grid-margin stretch-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{ :m_title }</h4>
+                                        <div class="card-description">
+                                            <button class="btn btn-success ml-auto mb-2 float-right"
+                                                onclick="showDialog()">
+                                                { :m_create }</button>
+                                            <p>{ :m_desc }</p>
+                                            <br>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="table-responsive">
+                                                { if :news }
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>{ :m_tbl_1 }</td>
+                                                            <td>{ :m_tbl_2 }</td>
+                                                            <td>{ :m_tbl_3 }</td>
+                                                            <td>{ :m_tbl_4 }</td>
+                                                            <td>{ :m_tbl_5 }</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        { foreach :new in :news }
+                                                        <tr>
+                                                            <td>{ :new.id }</td>
+                                                            <td>
+                                                                <?= (strlen($new['title']) > 50) ? substr($new['title'], 0, 50) . '...' : $new['title']; ?>
+                                                            </td>
+                                                            <td>{ :new.username }</td>
+                                                            <td>
+                                                                <?= \Objects\Formatters::formatDateAbsolute($new['createdAt']); ?>
+                                                            </td>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox"
+                                                                        <?= $new['public'] == 1 ? "checked='checked'" : "" ?>
+                                                                        id="public-{ :new.id }">
+                                                                    <label class="form-check-label"
+                                                                        for="public-{ :new.id }">
+                                                                        { :m_tbl_5 }
+                                                                    </label>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <button class="btn seconday"
+                                                                    onclick="openEditDialog({ :new.id })">
+                                                                    { :m_btn_edit }</button>
+                                                                <button class="btn btn-danger ml-2 px-2"
+                                                                    onclick="deleteEntry({ :new.id }, event)"><i
+                                                                        class="mdi mdi-delete m-0"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                        { endforeach }
+                                                    </tbody>
+                                                </table>
+                                                { else }
+                                                <h3 class="text-center">{ :m_no_entries }</h3>
+                                                { endif }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+
+
+    { css vendors/simplemde/simplemde.css }
+    { js vendors/simplemde/simplemde.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <div class="modal fade" id="editModal" data-action="" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" style="height: 100%;">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_create }</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <h4 class="font-weight-bold">{ :m_tbl_2 }</h4>
+                        <input type="text" class="w-100 form-control" id="title">
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <textarea id="editor" class="col-12"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">
+                        { :m_btn_close }</button>
+                    <button type="button" class="btn btn-success" id="saveBtn" onclick="postCreate()">
+                        { :m_create }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const showDialog = () => {
+        if (!isEditing) {
+
+        }
+        $('#editModal').modal('show');
+
+    };
+    var simplemde = null;
+
+
+    const postCreate = () => {
+        const v = simplemde.value();
+        $.post('{ :app_url }admin/news', {
+            id: isEditing ? isEditingId : "",
+            title: $("#title").val(),
+            content: v
+        }, (data) => {
+            if (!isEditing) {
+                isEditing = true;
+                isEditingId = data.id;
+            }
+            toastr.success('{ :m_msg_success }')
+        });
+    }
+
+    const deleteEntry = (id, event) => {
+        $.get('{ :app_url }api/news/delete/' + id, (data) => {
+            console.log(event);
+            $(event.target).closest('tr').remove()
+        });
+    }
+
+    $("input[type='checkbox']").on('click', (e) => {
+        const target = $(e.currentTarget).attr('id');
+        const id = target.split('-')[1];
+        $.get('{ :app_url }api/news/toggle/' + id, (data) => {
+            console.log(data);
+        })
+    })
+
+    isEditing = false;
+    tempContent = null;
+    isEditingId = null;
+
+    const openEditDialog = (id) => {
+        $.get('{ :app_url }api/news/single/' + id, (data) => {
+            isEditing = true;
+            $("#title").val(data.title);
+            tempContent = data.content;
+            isEditingId = data.id;
+            showDialog();
+
+        })
+    }
+    $('#editModal').on('shown.bs.modal', function () {
+        if (isEditing) {
+            simplemde.value(tempContent);
+        } else {
+            isEditing = false;
+            $("#title").val("");
+            simplemde.value("");
+        }
+    })
+
+    $(() => {
+        simplemde = new SimpleMDE({
+            element: document.getElementById("editor"),
+            hideIcons: "fullscreen",
+            spellChecker: false,
+            forceSync: true
+        });
+
+    })
+</script>
+
+</html>

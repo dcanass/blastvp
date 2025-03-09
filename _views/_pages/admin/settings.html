@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+{ css css/dark.css }
+{ else }
+{ css css/style.css }
+{ endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <style>
+        .accounting_provider_settings {
+            display: none;
+        }
+
+        .custom-icon { 
+            width: 35px !important;
+            height: 35px !important;
+            border-radius: 50%;
+            padding: 5px;
+            background-color: green;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                { if :pmNotReachable }
+                                <div class="alert alert-danger rounded-0 border-0 m-0">
+                                    <h3>{ :m_warning }</h3>
+                                    <p>{ :m_pm_not_reachable }</p>
+                                </div>
+                                { endif }
+                                { if :hasUpdate }
+                                <div class="alert alert-success rounded-0 border-0 m-0">
+                                    <h3>Update done</h3>
+                                    <p>Successfully installed version { :version }</p>
+                                    <div id="changelog">
+                                        ...
+                                    </div>
+                                </div>
+                                { endif }
+                                { if :updateAvailable }
+                                <div class="alert alert-success rounded-0 border-0 m-0">
+                                    <h3>Version { :updateNext } (<span id="changelogDate">...</span>)</h3>
+                                    <div id="changelog">
+                                        ...
+                                    </div>
+                                    <button @click="installUpdate" class="btn btn-primary float-right">Install { :updateNext }</button>
+                                </div>
+                                { endif }
+                                { if :hasNoCronjobSetup }
+                                <div class="alert alert-warning rounded-0 border-0 m-0">
+                                    <h3>{ :m_no_crontab }</h3>
+                                    <p>{ :m_no_crontab_text }</p>
+                                    <a onclick="tryAutomatedCrontabSetup()" class="btn btn-primary float-right text-white">{ :m_no_crontab_btn }</a>
+                                </div>
+                                { endif }
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <p class="card-description">
+                                        { :m_general }
+                                    </p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">APP_URL</label>
+                                                <div class="col-sm-9">
+                                                    <input id="app_url" type="text" class="form-control" value="{ :app_url }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">DB_HOST</label>
+                                                <div class="col-sm-9">
+                                                    <input id="db_host" type="text" class="form-control" value="{ :db_host }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">DB_USER</label>
+                                                <div class="col-sm-9">
+                                                    <input id="db_user" type="text" class="form-control" value="{ :db_user }"
+                                                        autocomplete="new-password">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">DB_PASSWORD</label>
+                                                <div class="col-sm-9">
+                                                    <input id="db_password" type="password" class="form-control" value="{ :db_password }"
+                                                        autocomplete="new-password">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">LANGUAGE</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="language">
+                                                        <?php foreach (\Objects\Constants::LANGUAGES as $k => $v): ?>
+                                                            <?php if ($k == $language): ?>
+                                                            <option selected value="{ :k }">{ :v }</option>
+                                                            <?php else: ?>
+                                                            <option value="{ :k }">{ :v }</option>
+                                                            <?php endif; ?>
+                                                        <?php endforeach ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">LOGO</label>
+                                                <div class="col-sm-9">
+                                                    <input id="logo" type="text" class="form-control" value="{ :logo }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">ToS Link</label>
+                                                <div class="col-sm-9">
+                                                    <input id="terms" type="text" class="form-control" value="{ :terms }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Support Link</label>
+                                                <div class="col-sm-9">
+                                                    <input id="support" type="text" class="form-control" value="{ :support }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_page_title }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :page_title }" id="page_title">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="registrations_active">
+                                                    <small>{ :m_registrations_enabled }</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :registrations_active }" { if :registrations_active }checked="{ :registrations_active }"{ endif } id="registrations_active">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="register_requires_confirmation">
+                                                    <small>{ :m_require_registration_confirmation }</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :register_requires_confirmation }" { if :register_requires_confirmation }checked="{ :register_requires_confirmation }"{ endif } id="register_requires_confirmation">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label" for="custom_style">{ :m_custom_css }</label>
+                                                <div class="col-sm-9">
+                                                    <textarea style="resize: vertical;" class="form-control" id="custom_style" rows="4">{ :custom_style }</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_enabled_languages }</label>
+                                                <div class="col-sm-9">
+                                                <select name="availableLanguages" id="availableLanguages" class="form-control" onchange="addLanguage()">
+                                                        <option value="-">-</option>
+                                                    { foreach :l in :availableLanguages with :k }
+                                                        <option value="{ :l }"><?= \Objects\Constants::LANGUAGES[$l]; ?></option>
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-9 row offset-3">
+                                                    <div id="enabledLanguagesPills">
+                                                        { foreach :l in :enabledLanguages with :k }
+                                                        <span class="badge badge-pill badge-dark" onclick="removeLanguage('{ :l }')" style="cursor: pointer;"><?= \Objects\Constants::LANGUAGES[$l]; ?> <i class="mdi mdi-close"></i></span>
+                                                        { endforeach }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_profile_pic_provider }</label>
+                                                <div class="col-sm-9">
+                                                <select name="profilePictureProviders" id="profilePictureProviders" class="form-control">
+                                                        { foreach :l in :profilePictureProviders }
+                                                        <?php if ($l == $profilePictureProvider): ?>
+                                                        <option value="{ :l }" selected>{ :l }</option>
+                                                        { else }
+                                                        <option value="{ :l }">{ :l }</option>
+                                                        { endif }
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="auto_install_minor">
+                                                    <small>{ :m_auto_install_minor }</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :auto_install_minor }" { if :auto_install_minor }checked="{ :auto_install_minor }"{ endif } id="auto_install_minor">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_force_theme }</label>
+                                                <div class="col-sm-9">
+                                                <select name="forceTheme" id="forceTheme" class="form-control">
+                                                        { foreach :l in :forceThemeOptions with :k }
+                                                        <?php if ($k == $forceTheme): ?>
+                                                        <option value="{ :k }" selected>{ :l }</option>
+                                                        { else }
+                                                        <option value="{ :k }">{ :l }</option>
+                                                        { endif }
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_captcha_provider }</label>
+                                                <div class="col-sm-9">
+                                                    <select name="captchaProvider" id="captchaProvider" class="form-control">
+                                                        <option value="none">{ :m_captcha_provider_none }</option>
+                                                        <?php foreach (\Module\BaseModule\Controllers\Captcha::$PROVIDERS as $k => $v): ?>
+                                                        <?php if ($k == $captchaProvider): ?>
+                                                        <option selected value="{ :k }">{ :v }</option>
+                                                        { else }
+                                                        <option value="{ :k }">{ :v }</option>
+                                                        { endif }
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_captcha_public }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :captchaPublic }" id="captchaPublic">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_captcha_private }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :captchaPrivate }" id="captchaPrivate">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_payment_methods_enabled_t }</label>
+                                                <div class="col-sm-9">
+                                                    <select name="paymentMethods" id="paymentMethods" class="form-control" onchange="addMethod()">
+                                                        <option value="-">-</option>
+                                                        { foreach :pM in :paymentMethods with :k }
+                                                        <option value="{ :k }">{ :pM }</option>
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_payment_currency }</label>
+                                                <div class="col-sm-9">
+                                                    <select name="currency" id="currency" class="form-control" onchange="saveAll()">
+                                                        { foreach :currency in :available_currencies with :k }
+                                                        <?php if ($k == $currency_enabled): ?>
+                                                        <option selected value="{ :k }">{ :currency.display } ({ :currency.symbol })</option>
+                                                        { else }
+                                                        <option value="{ :k }">{ :currency.display } ({ :currency.symbol })</option>
+                                                        { endif }
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_payment_methods_enabled }</label>
+                                                <div class="col-sm-9" id="paymentMethodsPills">
+                                                    { foreach :e in :enabledMethods with :k }
+                                                    <span class="badge badge-pill badge-dark" onclick="removeMethod('{ :e }')" style="cursor: pointer;"><?= \Objects\Balance::$availablePaymentMethods[$e];?> <i class="mdi mdi-close"></i></span>
+                                                    { endforeach }
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_currency_position }</label>
+                                                <div class="col-sm-9">
+                                                    <select name="currency" id="currency_position" class="form-control" onchange="saveAll()">
+                                                        <option value="BEHIND" <?=$currency_position=='BEHIND'? 'selected="selected"' : ''?> value="{ :k }">{ :m_currency_position_behind }</option>
+                                                        <option value="BEFORE" <?=$currency_position=='BEFORE'? 'selected="selected"' : ''?> value="{ :k }">{ :m_currency_position_before }</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('mollie')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_methods_mollie }</label>
+                                                <div class="col-sm-9">
+                                                    <select name="mollieMethods" id="mollieMethods" class="form-control" onchange="addMethodToMethod('mollie')">
+                                                        <option value="-">-</option>
+                                                        { foreach :pM in :mollieMethods with :k }
+                                                        <option value="{ :k }"><?= \Objects\Formatters::getPaymentMethod("mollie", $k);?></option>
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_payment_methods_enabled }</label>
+                                                <div class="col-sm-9" id="paymentMethodsPills">
+                                                    { foreach :e in :mollieEnabledMethods with :k }
+                                                    <span class="badge badge-pill badge-dark" onclick="removeMethodFromMethod('mollie', '{ :e }')" style="cursor: pointer;"><?= \Objects\Formatters::getPaymentMethod("mollie", $e);?> <i class="mdi mdi-close"></i></span>
+                                                    { endforeach }
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Mollie API-Key</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :mollie_api_key }" id="mollie_api_key">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('coinbase')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Coinbase API-Key</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :coinbase_api_key }" id="coinbase_api_key">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Coinbase Webhook Secret</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :coinbase_webhook_secret }" id="coinbase_webhook_secret">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('paysafecard')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Paysafecard API-Key</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :paysafecard_api_key }" id="paysafecard_api_key">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('gocardless')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">GoCardless API-Key</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :gocardless_api_key }" id="gocardless_api_key">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">GoCardless Webhook Password</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :gocardless_webhook }" id="gocardless_webhook">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('paypal')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">PayPal Client</label>
+                                                <div class="col-sm-9">
+                                                    <input id="pp_client" type="text" class="form-control" value="{ :pp_client }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">PayPal Secret</label>
+                                                <div class="col-sm-9">
+                                                    <input id="pp_secret" type="text" class="form-control" value="{ :pp_secret }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">PayPal Mode</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="pp_mode">
+                                                        <?php foreach (\Objects\Constants::PAYPAL_MODES as $k => $v): ?>
+                                                            <?php if ($k == $pp_mode): ?>
+                                                            <option selected value="{ :k }">{ :k }</option>
+                                                            <?php else: ?>
+                                                            <option value="{ :k }">{ :k }</option>
+                                                            <?php endif; ?>
+                                                        <?php endforeach ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-9">
+                                                    <button class="btn btn-primary" onclick="testPayPal()">Test PayPal</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('stripe')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Stripe Client</label>
+                                                <div class="col-sm-9">
+                                                    <input id="stripe_client" type="text" class="form-control" value="{ :stripe_client }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Stripe Secret</label>
+                                                <div class="col-sm-9">
+                                                    <input id="stripe_secret" type="text" class="form-control" value="{ :stripe_secret }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">Stripe Webhook</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" id="stripe_webhook_secret" class="form-control" value="{ :stripe_webhook_secret }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-9">
+                                                    <button class="btn btn-primary" onclick="testStripe()">Test Stripe</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if (\Module\BaseModule\Controllers\Balance::hasEnabled('duitku')): ?>
+                                    <hr>
+                                    <div class="row">
+                                    { else }
+                                    <div class="row" style="display: none;">
+                                    { endif }
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Duitku Merchant-ID</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :duitku_merchant }" id="duitku_merchant">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Duitku API-Key</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" value="{ :duitku_apikey }" id="duitku_apikey">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Proxmox IP</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_host" type="text" class="form-control" value="{ :p_host }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Authentication Mode</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="p_auth_mode">
+                                                        <?php foreach (['api' => 'API Key', 'user' => "User/Pass (deprecated)"] as $k => $v): ?>
+                                                            <?php if ($k == $p_auth_mode): ?>
+                                                            <option selected value="{ :k }">{ :v }</option>
+                                                            <?php else: ?>
+                                                            <option value="{ :k }">{ :v }</option>
+                                                            <?php endif; ?>
+                                                        <?php endforeach ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="d_p_token_id">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">API Token ID</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_token_id" type="text" class="form-control" value="{ :p_token_id }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="d_p_token_secret">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">API Token Secret</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_token_secret" type="text" class="form-control" value="{ :p_token_secret }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="d_p_user">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Proxmox user</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_user" type="text" class="form-control" value="{ :p_user }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="d_p_password">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Proxmox password</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_password" type="password" class="form-control" value="{ :p_password }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Proxmox Node</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_node" type="text" class="form-control" value="{ :p_node }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="mac_support">
+                                                    <small>MAC Support</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                        <input class="form-check-input form-control" type="checkbox" value="{ :mac_support }" { if :mac_support }checked="{ :mac_support }"{ endif } id="mac_support">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Bridge</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_bridge" type="text" class="form-control" value="{ :p_bridge }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">Storage</label>
+                                                <div class="col-sm-9">
+                                                    <input id="p_storage" type="text" class="form-control" value="{ :p_storage }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="full_clone">
+                                                    <small>Full clones?</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :full_clone }" { if :full_clone }checked="{ :full_clone }"{ endif } id="full_clone">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">ISO Storage</label>
+                                                <div class="col-sm-9">
+                                                    <input id="isoStorage" type="text" class="form-control" value="{ :isoStorage }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="skip_lock">
+                                                    <small>Skip Lock?</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :skip_lock }" { if :skip_lock }checked="{ :skip_lock }"{ endif } id="skip_lock">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Websockify Sockets -->
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">VNC Host</label>
+                                                <div class="col-sm-9">
+                                                    <input id="vnc_host" type="text" class="form-control" value="{ :console_host }">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">VNC Port</label>
+                                                <div class="col-sm-9">
+                                                    <input id="vnc_port" type="text" class="form-control" value="{ :console_port }">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">VNC Password</label>
+                                                <div class="col-sm-9">
+                                                    <input id="vnc_password" type="text" class="form-control" value="{ :console_password }">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-9">
+                                                    <button class="btn btn-primary" @click="testProxmox();">{ :m_mail_test }</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoice_1 }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="invoice_1" type="text" class="form-control" value="{ :invoice_1 }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoice_2 }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="invoice_2" type="text" class="form-control" value="{ :invoice_2 }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoice_3 }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="invoice_3" type="text" class="form-control" value="{ :invoice_3 }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoice_4 }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="invoice_4" type="text" class="form-control" value="{ :invoice_4 }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="invoice_show_vat">
+                                                    <small>{ :m_invoice_show_vat }</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                        <input class="form-check-input form-control" type="checkbox" value="{ :invoice_show_vat }" { if :invoice_show_vat }checked="{ :invoice_show_vat }"{ endif } id="invoice_show_vat">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoice_vat }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="invoice_vat" type="number" class="form-control" value="{ :invoice_vat }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <span class="badge badge-info" style="cursor: pointer;" onclick="openBetaInfo()">BETA</span>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_software }</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="accounting_provider" onchange="updateAccountingSettings()">
+                                                        <?php foreach (\Objects\Constants::INVOICE_SYSTEMS as $k => $v): ?>
+                                                        <?php if ($k == $accounting_provider): ?>
+                                                        <option selected value="{ :k }">{ :v }</option>
+                                                        <?php else: ?>
+                                                        <option value="{ :k }">{ :v }</option>
+                                                        <?php endif; ?>
+                                                        <?php endforeach ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-12">
+                                                    <button class="btn btn-primary" onclick="checkAccountingConnection()">{ :m_invoicing_test_start }</button>
+                                                    <button class="btn btn-primary" onclick="createAccountingTestInvoice()">{ :m_invoicing_create_test_invoice }</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="form-check-label col-sm-8 col-form-label" for="accounting_send_mails">
+                                                    <small>{ :m_accounting_send_mails }</small>
+                                                </label>
+                                                <div class="col-sm-3">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :accounting_send_mails }" { if :accounting_send_mails }checked="{ :accounting_send_mails }"{ endif } id="accounting_send_mails">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_mode }</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="invoicing_mode">
+                                                        <option <?php if ($invoicing_mode === "INV_MODE_DELIVERY") { echo "selected"; } ?> value="INV_MODE_DELIVERY">{ :m_invoicing_mode_delivery }</option>
+                                                        <option <?php if ($invoicing_mode === "INV_MODE_BALANCE") { echo "selected"; } ?> value="INV_MODE_BALANCE">{ :m_invoicing_mode_balance }</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row accounting_provider_settings" id="billomatSettings" >
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_billomat_customer_nr }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="billomat_customer_id" type="text" class="form-control" value="{ :billomat_settings.customer_id }" placeholder="k157...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_api_key }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="billomat_api_key" type="text" class="form-control" value="{ :billomat_settings.api_key }" placeholder="9e36e7f2...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">App-ID</label>
+                                                <div class="col-sm-9">
+                                                    <input id="billomat_app_id" type="text" class="form-control" value="{ :billomat_settings.app_id }" placeholder="1234...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">App-Secret</label>
+                                                <div class="col-sm-9">
+                                                    <input id="billomat_app_secret" type="text" class="form-control" value="{ :billomat_settings.app_secret }" placeholder="7RW67neGSaRX2...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_collection_customer }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="billomat_collection_customer" type="text" class="form-control" value="{ :billomat_settings.collection_customer }" placeholder="KD1...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row accounting_provider_settings" id="lexofficeSettings" >
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_api_key }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="lexoffice_api_key" type="text" class="form-control" value="{ :lexoffice_settings.api_key }" placeholder=".kTrM67ve...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row accounting_provider_settings" id="sevdeskSettings" >
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_api_key }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="sevdesk_api_key" type="text" class="form-control" value="{ :sevdesk_settings.api_key }" placeholder=".kTrM67ve...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_invoicing_collection_customer }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="sevdesk_collection_customer" type="text" class="form-control" value="{ :sevdesk_settings.collection_customer }" placeholder="10001">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_host }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_host" type="text" class="form-control" value="{ :mail_host }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_port }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_port" type="number" class="form-control" value="{ :mail_port }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_encryption }</label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="mail_encryption">
+                                                        <?php foreach (\Objects\Constants::MAIL_ENCRYPTIONS as $k => $v): ?>
+                                                        <?php if ($k == $mail_encryption): ?>
+                                                        <option selected value="{ :k }">{ :v }</option>
+                                                        <?php else: ?>
+                                                        <option value="{ :k }">{ :v }</option>
+                                                        <?php endif; ?>
+                                                        <?php endforeach ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_user }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_user" type="text" class="form-control" value="{ :mail_user }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_password }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_password" type="password" class="form-control" value="{ :mail_password }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_from }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_from" type="text" class="form-control" value="{ :mail_from }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_from_name }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_from_name" type="text" class="form-control" value="{ :mail_from_name }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_reply }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_reply" type="text" class="form-control" value="{ :mail_reply }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_mail_reply_name }</label>
+                                                <div class="col-sm-9">
+                                                    <input id="mail_reply_name" type="text" class="form-control" value="{ :mail_reply_name }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <div class="col-sm-12">
+                                                    <button class="btn btn-primary" onclick="testMailServer()">{ :m_mail_test }</button>
+                                                    <button class="btn btn-primary" onclick="openDiscoverDialog()">{ :m_mail_detect }</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <p class="card-title">
+                                        { :m_modules }
+                                    </p>
+                                    <div class="row m-0 p-0" id="modules">
+                                        <div v-for="mod in modules" class="col-md-6 col-12 px-2 my-2">
+                                            <div class="card h-100" style="border: 1px solid grey;">
+                                                <div class="card-body">
+                                                    <div class="d-flex" style="position: relative">
+                                                        <img style="height: 150px;" :src="`https://bennetgallein.de/imgs/products/${mod.id}.png`" alt="">
+                                                        <div class="mx-4">
+                                                            <div class="row mx-0">
+                                                                <h1>{{mod.name.replace(['ProxmoxCP '], '').replace(' Module', '')}}</h1>
+                                                                <span v-if="mod.installed" class="switch p-2 pr-0" style="position: absolute; top: 0; right: 0;">
+                                                                    <input :checked="mod.enabled" type="checkbox" class="switch-toggle" @change="changeToggle(mod.internalName)" :id="`switch-${mod.id}`">
+                                                                    <label :for="`switch-${mod.id}`"></label>
+                                                                </span>
+                                                                <button v-if="!mod.installed" class="btn btn-secondary" style="position: absolute; top: 0; right: 0" data-target="#installModuleModal" data-toggle="modal" @click="moduleDownloadContext = mod">{ :m_install_module }</button>
+                                                            </div>
+                                                            <small v-if="mod.installed">Installed: v{{mod.version}}</small>
+                                                            <div v-html="mod.shortDescription"></div>
+                                                            <button v-if="mod.versionAvailable !== mod.version" class="btn btn-warning" @click="updateModule(mod.internalName)">Update to v{{mod.versionAvailable}}</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button"
+                                                onclick="saveAll()">{ :m_save }</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <modal :show="updateModal" @hide="updateModal = false" :hide-default-cancel="true"
+                        title="Install { :updateNext }" close-text="{ :m_close_btn }">
+                        <template #body>
+                            <Spinner v-if="updateInstalling"></Spinner>
+                            <div v-if="updateResult !== false && updateResult.error">
+                                <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                                    <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                                    <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                                      stroke-miterlimit="10"></line>
+                                    <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                                      stroke-miterlimit="10"></line>
+                                </svg>
+                                <p class="font-weight-bold" v-html="updateResult.message"></p>
+                            </div>
+                            <div v-if="updateResult !== false && !updateResult.error">
+                                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                    <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                                    <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                  </svg>
+                                <p class="font-weight-bold" v-html="updateResult.message"></p>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" v-if="updateFinished" class="btn btn-success" id="saveBtn" @click="updateModal = false">
+                                { :m_close_btn }</button>
+                        </template>
+                    </modal>
+                    <div class="modal fade modal-fluid" id="proxmoxTest" tabindex="-1" role="dialog" aria-labelledby="proxmoxTestLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>Proxmox-Test</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row" v-if="!loading">
+                                        <div class="col-12 my-1" v-for="(res, k) in result" :key="k">
+                                            <h4 class="font-bold"><i class="mdi" :class="{ 
+                                                'mdi-check text-success': res.state == 'success',
+                                                'mdi-cancel text-secondary': res.state == 'skipped',
+                                                'mdi-close text-danger': res.state == 'error',
+                                                'mdi-alert-outline text-warning': res.state == 'warning'
+                                            }"></i> {{ res.display }}</h4>
+                                            <div class="row col-12">
+                                                <div class="ml-3 w-100">
+                                                    <small v-if="res.state != 'skipped'" style="cursor: pointer" data-toggle="collapse" :href="`#collapse-info-${k}`" role="button" aria-expanded="false" :aria-controls="`collapse-info-${k}`"><i class="mdi mdi-menu-right"></i> { :m_show_more }</small>
+                                                    <div class="collapse" :id="`collapse-info-${k}`">
+                                                        <div class="card card-body">
+                                                            <code style="white-space: pre-line" v-html="res.message"></code>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <spinner />
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="installModuleModal" tabindex="-1" role="dialog" aria-labelledby="installModuleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h3>{ :m_install_module }</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row col-12 m-0 p-0" id="moduleInstallationAlertBox"></div>
+                                    <div class="row">
+                                        <div class="col-12 form-group">
+                                            <label for="moduleInstallUrl">{ :m_input_download }</label>
+                                            <input v-model="moduleKey" type="text" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="form-control">
+                                            <small>Don't have a download key? Purchase the module here: <a :href="moduleDownloadContext.href" target="_blank">Here <span class="mdi mdi-open-in-new"></span> </a></small>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Spinner v-if="moduleInstallLoading"></Spinner>
+                                        <div v-if="moduleInstallResult !== false && moduleInstallResult.error">
+                                            <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                                                <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                                                <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                                                  stroke-miterlimit="10"></line>
+                                                <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                                                  stroke-miterlimit="10"></line>
+                                            </svg>
+                                            <p class="font-weight-bold" v-html="moduleInstallResult.msg"></p>
+                                        </div>
+                                        <div v-if="moduleInstallResult !== false && !moduleInstallResult.error">
+                                            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                                                <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                                                <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                              </svg>
+                                            <p class="font-weight-bold" v-html="moduleInstallResult.msg"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">{ :m_close_btn }</button>
+                                    <button type="button" class="btn btn-success ml-auto" @click="installModule()">{ :m_import }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade modal-fluid" id="mailTestModal" tabindex="-1" role="dialog" aria-labelledby="mailTestModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Mailtest</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row col-12 m-0" id="mailTestAlertBox"></div>
+                                <div class="row col-12 m-0" id="mailStacktrace">
+                                    <code style="white-space: pre-line"></code>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade modal-fluid" id="mailDiscoveryModal" tabindex="-1" role="dialog" aria-labelledby="mailDiscoveryModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Mail-Discovery</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row col-12 m-0 mb-4" id="mailDiscoveryBox">
+                                    <div class="row col-12">
+                                        <p>{ :m_mail_test_desc }</p>
+                                    </div>
+                                    <div class="form-group row col-12">
+                                        <label for="discovery_sender" class="col-sm-3 col-form-label">{ :m_mail_test_sender }</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" class="form-control" id="discovery_sender">
+                                        </div>
+                                    </div>
+                                    <div class="col-12 row m-0 p-0 justify-content-end">
+                                        <button class="btn btn-primary" onclick="discover()">{ :m_mail_test_find }</button>
+                                    </div>
+                                </div>
+                                <div class="row col-12 m-0">
+                                    <div class="form-group row col-12">
+                                        <label class="col-sm-3 col-form-label">{ :m_mail_test_server }</label>
+                                        <div class="col-sm-9">
+                                            <input id="mail_discovery_host" type="text" class="form-control" value="">
+                                            <small class="text-primary" style="cursor: pointer;" onclick="acceptDiscovery('mail_discovery_host')"><i class="mdi mdi-plus"></i> { :m_mail_test_suggestion }</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-12 m-0">
+                                    <div class="form-group row col-12">
+                                        <label class="col-sm-3 col-form-label">{ :m_mail_test_port }</label>
+                                        <div class="col-sm-9">
+                                            <input id="mail_discovery_port" type="number" class="form-control" value="">
+                                            <small class="text-primary" style="cursor: pointer;" onclick="acceptDiscovery('mail_discovery_port')"><i class="mdi mdi-plus"></i> { :m_mail_test_suggestion }</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row col-12 m-0">
+                                    <div class="form-group row col-12">
+                                        <label class="col-sm-3 col-form-label">{ :m_mail_test_encryption }</label>
+                                        <div class="col-sm-9">
+                                            <input id="mail_discovery_encryption" type="text" class="form-control" value="">
+                                            <small class="text-primary" style="cursor: pointer;" onclick="acceptDiscovery('mail_discovery_encryption')"><i class="mdi mdi-plus"></i> { :m_mail_test_suggestion }</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade modal-fluid" id="paypalTestModal" tabindex="-1" role="dialog" aria-labelledby="paypalTestModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="paypalTestTitle">PayPal-Test</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row col-12 m-0" id="paypalTestAlertBox"></div>
+                                <div class="row col-12 m-0" id="paypalStacktrace">
+                                    <code style="white-space: pre-line"></code>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade modal-fluid" id="moduleUpdateModal" tabindex="-1" role="dialog" aria-labelledby="moduleUpdateModalLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 id="paypalTestTitle">Update <span id="moduleUpdateName">...</span></h3>
+                                <p>{ :m_release_date }: <span id="moduleUpdateReleaseDate">22.12.2012</span></p>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row col-12 m-0" id="moduleUpdateChangelog">
+                                    <code style="white-space: pre-line"></code>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                                <button type="button" class="btn btn-danger" id="updateModuleButton" onclick="_updateModule()">Install v<span id="moduleUpdateInstallButton"></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js' 
+        import Spinner from '{ :app_url }js/components/spinner.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        var app = new Vue({
+            components: { Spinner, Modal },
+            el: "#app",
+            data: {
+                loading: true,
+                result: null,
+                
+                updateModal: false,
+                updateInstalling: true,
+                updateResult: false,
+                updateFinished: false,
+
+                moduleKey: null,
+                moduleInstallLoading: false,
+                moduleInstallResult: false,
+                moduleDownloadContext: false,
+
+                modules: [],
+                installedModules: JSON.parse('<?= json_encode($modules); ?>')
+            },
+            created: async function() {
+                await this.loadData();
+            },
+            methods: {
+                loadData: async function() {
+                    $.ajax({
+                        url: 'https://reseller.bennetg.de/api/products/34',
+                        type: 'POST',
+                        data: JSON.stringify({
+                            withModules: true,
+                            withThemes: false
+                        }),
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8',
+                        success:  (data) => {
+                             $.get('{ :app_url }api/admin/get-module-updates', (updateData) => {
+                                this.modules = data.modules.map(e => {
+                                    const installed = this.installedModules.find(a => a.id === e.id);
+                                    const upd = updateData.find((v) => v.name === installed?.name);
+    
+                                    return {
+                                        installed: !!installed,
+                                        enabled: installed?.enabled || false,
+                                        internalName: installed?.name,
+                                        version: installed?.version,
+                                        versionAvailable: upd?.updateAvailable ? upd?.newest : installed?.version,
+                                        ...e
+                                    }
+                                });
+                             });
+                        }
+                    })
+                },
+                testProxmox: async function() {
+                    $("#proxmoxTest").modal('show');
+                    this.loading = true;
+                    let host = $('#p_host').val();
+                    let method = $("#p_auth_mode").val();
+                    let password = $("#p_password").val();
+                    let user = $("#p_user").val();
+                    let tokenId = $("#p_token_id").val();
+                    let tokenSecret = $("#p_token_secret").val();
+                    let bridge = $("#p_bridge").val();
+                    let storage = $("#p_storage").val();
+                    let node = $("#p_node").val();
+                    let skiplock = $("#skip_lock").prop('checked');
+
+                    let console_host = $("#vnc_host").val();
+                    let console_password = $("#vnc_password").val();
+                    let console_port = $("#vnc_port").val();
+
+                    const result = await $.post('{ :app_url }api/admin/test-proxmox', {
+                        host, 
+                        method, 
+                        tokenId, 
+                        tokenSecret, 
+                        user, 
+                        password, 
+                        bridge, 
+                        storage, 
+                        node, 
+                        skiplock,
+                        console_host, 
+                        console_password, 
+                        console_port
+                    });
+                    this.result = result;
+                    this.loading= false;
+                },
+                changeToggle: function(mod) {
+                    $.get('{ :app_url }api/admin/toggle-module/' + mod, (data) => {
+                        if (data === "401") {
+                            toastr.error('Invalid permissions');
+                        } else {
+                            toastr.success('{ :m_saved_long }', "{ :m_saved }")
+                        }
+                    });
+                },
+                installUpdate: async function() {
+                    //
+                    this.updateResult = false;
+                    this.updateModal = true;
+                    this.updateInstalling = true;
+                    this.updateFinished = false;
+                
+                    const update = await $.get('{ :app_url }api/admin/update');
+                    
+                    this.updateResult = update;
+                    this.updateInstalling = false;
+
+                    if (!update.error) {
+                        // start database migration
+                        setTimeout(async () => {
+                            this.updateInstalling = true;
+                            $.get('{ :app_url }api/admin/import-database-changes-rest?anti-cache=' + new Date().getTime(), (migrationResult) => {
+                                this.updateInstalling = false;
+                                this.updateResult = {
+                                    error: false,
+                                    message: (migrationResult.output.length > 0 ? "Applied: " + migrationResult.output.join(", ") + "." : "") + 'Update Finished. Reloading the page in 5 seconds.'
+                                }
+                                this.updateFinished = true;
+                                setTimeout(() => reload(), 5000)
+                            });
+                        }, 2000)
+                    }
+
+                },
+                installModule: async function() {
+                    this.moduleInstallResult = false;
+                    this.moduleInstallLoading = true;
+                    await $.post('{ :app_url }api/admin/import-module', {
+                        'downloadKey': this.moduleKey
+                    }, (data) => {
+                        // installation done
+                        this.moduleInstallResult = data;
+                        this.moduleInstallLoading = false;
+                        $.get('{ :app_url }api/admin/import-database-changes-rest?anti-cache=' + new Date().getTime(), (migrationResult) => {
+                            toastr.success(data.msg);
+                            if (migrationResult.output.length > 0) {
+                                $("#moduleInstallationDump code").html("Migrations: <br />" + migrationResult.output.join(', '));
+                            }
+                        })
+                    });
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin()
+            }
+        })
+    </script>
+
+    <script>
+
+        $(() => {
+            // load latest changelog
+            $.get('{ :app_url }api/changelog/BaseModule', (changelog) => { 
+                $("#changelog").html(changelog.changelog) 
+                $("#changelogDate").text(changelog.releaseDate)
+            });
+
+            updateAccountingSettings();
+            updateConnectionSettings();
+            
+            $("#p_auth_mode").on('change', updateConnectionSettings)
+        });
+        
+
+        const updateConnectionSettings = () => {
+            const a = $("#p_auth_mode").val();
+            if (a == "user") {
+                $("#d_p_token_id").hide();
+                $("#d_p_token_secret").hide();
+                $("#d_p_user").show();
+                $("#d_p_password").show();
+            } else {
+                $("#d_p_token_id").show();
+                $("#d_p_token_secret").show();
+                $("#d_p_user").hide();
+                $("#d_p_password").hide();
+            }
+        }
+
+        const tryAutomatedCrontabSetup = () => {
+            //
+            $.get("{ :app_url }api/admin/install-cronjob", (result) => {
+                if (result.error) {
+                    toastr.error(result.msg);
+                } else {
+                    toastr.success(result.msg);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 3000)
+                }
+            })
+        }
+        
+        const updateModule = (moduleName) => {
+            $.get('{ :app_url }api/changelog/' + moduleName, (changelog) => { 
+                $("#moduleUpdateChangelog code").html(changelog.changelog) 
+                $("#moduleUpdateInstallButton").text(changelog.version)
+                $("#moduleUpdateReleaseDate").text(changelog.releaseDate)
+            });
+            $("#moduleUpdateModal").modal('show');
+            $("#moduleUpdateName").text(moduleName);
+            $("#updateModuleButton").removeAttr('disabled');
+        }
+
+        const _updateModule = () => {
+            const module = $("#moduleUpdateName").text();
+            $("#updateModuleButton").attr('disabled', 'disabled');
+            toastr.success('Module Update started');
+            $.get('{ :app_url }api/admin/update-module/' + module, (data) => {
+                $.get('{ :app_url }api/admin/import-database-changes-rest?anti-cache=' + new Date().getTime(), (migrationResult) => {
+                    if (data.error) {
+                        toastr.error(data.msg);
+                        if (migrationResult.output.length > 0)
+                            $("#moduleUpdateChangelog code").html(data.terminal + '<br /> Migrations: ' + migrationResult.output.join(", "));
+                    } else {
+                        toastr.success(data.msg);
+                    }
+                });
+            });
+        }
+
+        function addMethodToMethod(method) {
+            let a = $(this.event.currentTarget).val();
+            if (a == "-") return;
+            $.get('{ :app_url }api/admin/add-payment-method-to-method/' + method + '/' + a, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function removeMethodFromMethod(method, paymentMethod) {
+            $.get('{ :app_url }api/admin/remove-payment-method-from-method/' + method + '/' + paymentMethod, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function addMethod() {
+            let a = $(this.event.currentTarget).val();
+            if (a == "-") return;
+            $.get('{ :app_url }api/admin/add-payment-method/' + a, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function removeMethod(a) {
+            $.get('{ :app_url }api/admin/remove-payment-method/' + a, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function addLanguage() {
+            let a = $(this.event.currentTarget).val();
+            if (a == "-") return;
+            $.get('{ :app_url }api/admin/add-language/' + a, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function removeLanguage(a) {
+            $.get('{ :app_url }api/admin/remove-language/' + a, (data) => {
+                if (data.error) {
+                    toastr.error(data.msg);
+                } else {
+                    toastr.success(data.msg);
+                    setTimeout(() => { window.location.reload(); }, 500);
+                }
+            })
+        }
+
+        function openDiscoverDialog() {
+            $("#mailDiscoveryModal").modal('show');
+        }
+
+        function discover() {
+            const email = $("#discovery_sender").val();
+            $.post('{ :app_url }api/admin/discover-email', {
+                email
+            }, (data) => {
+                $("#mailDiscoveryBox").html(`<p>{ :m_mail_test_suggestion_text }</p>`);
+                $("#mail_discovery_host").val(data.result.host);
+                $("#mail_discovery_port").val(data.result.port);
+                $("#mail_discovery_encryption").val(data.result.encryption);
+
+                $("#mailDiscoveryModal").modal('show');
+            })
+        }
+
+        function acceptDiscovery(field) {
+            const value = $("#" + field).val()
+            switch (field) {
+                case "mail_discovery_host":
+                    $("#mail_host").val(value);
+                break;
+                case "mail_discovery_port":
+                    $("#mail_port").val(value)
+                break;
+                case "mail_discovery_encryption":
+                    $("#mail_encryption").val(value)
+                break;
+            }
+            toastr.success("{ :m_mail_test_suggestion_done }");
+        }
+
+        function testMailServer() {
+            let a = $(this.event.currentTarget); 
+            a.attr('disabled', "disabled");
+            $('#mailTestModal').modal('show');
+            $.get('{ :app_url }api/admin/test-mail', (data) => {
+                $("#mailTestAlertBox").html(`<p>${data.message}</p>`);
+                if (data.error === false) {
+                    $('#mailStacktrace').hide();
+                } else {
+                    $('#mailStacktrace').show();
+                    $("#mailStacktrace code").text(data.trace);
+                }
+                a.removeAttr('disabled');
+            });
+        }
+
+        function testPayPal() {
+            let a = $(this.event.currentTarget);
+            a.attr('disabled', "disabled");
+            $("#paypalTestTitle").text('PayPal Test');
+            $("#paypalTestAlertBox").html('<b>Bitte warten...</b>');
+            $('#paypalTestModal').modal('show');
+            $.post('{ :app_url }api/admin/test-paypal', {
+                public: $("#pp_client").val(),
+                private: $("#pp_secret").val(),
+                mode: $("#pp_mode").val()
+            }, (data) => {
+                $("#paypalTestAlertBox").html(`<p>${data.message}</p>`);
+                if (data.error === false) {
+                    $('#paypalStacktrace').hide();
+                } else {
+                    $('#paypalStacktrace').show();
+                    $("#paypalStacktrace code").text(data.trace);
+                }
+                a.removeAttr('disabled');
+            })
+        }
+
+        function testStripe() {
+            let a = $(this.event.currentTarget);
+            a.attr('disabled', "disabled");
+            $("#paypalTestTitle").text('Stripe Test');
+            $("#paypalTestAlertBox").html('<b>Bitte warten</b>');
+            $('#paypalTestModal').modal('show');
+            $.post('{ :app_url }api/admin/test-stripe', {
+                public: $("#stripe_client").val(),
+                private: $("#stripe_secret").val()
+            }, (data) => {
+                $("#paypalTestAlertBox").html(`<p>${data.message}</p>`);
+                if (data.error === false) {
+                    $('#paypalStacktrace').hide();
+                } else {
+                    $('#paypalStacktrace').show();
+                    $("#paypalStacktrace code").text(data.trace);
+                }
+                a.removeAttr('disabled');
+            })
+        }
+
+        function saveAll() {
+            $.post("{ :app_url }api/admin/settings/save", {
+                "app_url": $("#app_url").val(),
+                "db_host": $("#db_host").val(),
+                "db_user": $("#db_user").val(),
+                "db_password": $("#db_password").val(),
+                "language": $('#language option:selected').val(),
+                "pp_client": $("#pp_client").val(),
+                "pp_secret": $('#pp_secret').val(),
+                "pp_mode": $('#pp_mode option:selected').val(),
+                "p_host": $("#p_host").val(),
+                "p_auth_mode": $("#p_auth_mode").val(),
+                "p_user": $('#p_user').val(),
+                "p_password": $("#p_password").val(),
+                "p_token_id": $("#p_token_id").val(),
+                "p_token_secret": $("#p_token_secret").val(),
+                "p_node": $('#p_node').val(),
+                "p_full_clone": $("#full_clone").prop('checked'),
+                "p_skip_lock": $("#skip_lock").prop("checked"),
+                "logo": $('#logo').val(),
+                "invoice_1": $('#invoice_1').val(),
+                "invoice_2": $('#invoice_2').val(),
+                "invoice_3": $("#invoice_3").val(),
+                "invoice_4": $('#invoice_4').val(),
+                "invoice_show_vat": $('#invoice_show_vat').prop('checked'),
+                "invoice_vat": $('#invoice_vat').val(),
+                "mail_host": $('#mail_host').val(),
+                "mail_port": $("#mail_port").val(),
+                "mail_encryption": $("#mail_encryption option:selected").val(),
+                "mail_user": $('#mail_user').val(),
+                "mail_password": $('#mail_password').val(),
+                "mail_from": $('#mail_from').val(),
+                "mail_from_name": $('#mail_from_name').val(),
+                "mail_reply": $('#mail_reply').val(),
+                "mail_reply_name": $("#mail_reply_name").val(),
+                "mac_support": $('#mac_support').prop('checked'),
+                "p_bridge": $('#p_bridge').val(),
+                "p_storage": $('#p_storage').val(),
+                "terms": $('#terms').val(),
+                "support": $('#support').val(),
+                "stripe_client": $("#stripe_client").val(),
+                "stripe_secret": $("#stripe_secret").val(),
+                "stripe_webhook_secret": $("#stripe_webhook_secret").val(),
+                "page_title": $("#page_title").val(),
+                "registrations_active": $("#registrations_active").prop('checked'),
+                "register_requires_confirmation": $("#register_requires_confirmation").prop('checked'),
+                "console_host": $("#vnc_host").val(),
+                "console_password": $("#vnc_password").val(),
+                "console_port": $("#vnc_port").val(),
+                "mollie_api_key": $("#mollie_api_key").val(),
+                "coinbase_api_key": $("#coinbase_api_key").val(),
+                "coinbase_webhook_secret": $("#coinbase_webhook_secret").val(),
+                "paysafecard_api_key": $("#paysafecard_api_key").val(),
+                "gocardless_api_key": $("#gocardless_api_key").val(),
+                "gocardless_webhook": $("#gocardless_webhook").val(),
+                "duitku_apikey": $("#duitku_apikey").val(),
+                "duitku_merchant": $("#duitku_merchant").val(),
+                "currency": $('#currency option:selected').val(),
+                "currency_position": $("#currency_position option:selected").val(),
+                'captchaProvider': $("#captchaProvider option:selected").val(),
+                'captchaPublic': $("#captchaPublic").val(),
+                'captchaPrivate': $("#captchaPrivate").val(),
+                'custom_style': $("#custom_style").val(),
+                "accounting_provider": $("#accounting_provider option:selected").val(),
+                'accounting_send_mails': $('#accounting_send_mails').prop('checked'),
+                'billomat_customer_id': $("#billomat_customer_id").val(),
+                'billomat_api_key': $("#billomat_api_key").val(),
+                'billomat_app_id': $("#billomat_app_id").val(),
+                'billomat_app_secret': $("#billomat_app_secret").val(),
+                'billomat_collection_customer': $("#billomat_collection_customer").val(),
+                'lexoffice_api_key': $("#lexoffice_api_key").val(),
+                'sevdesk_api_key': $("#sevdesk_api_key").val(),
+                'sevdesk_collection_customer': $("#sevdesk_collection_customer").val(),
+                'profile_picture_provider': $("#profilePictureProviders").val(),
+                'isoStorage': $("#isoStorage").val(),
+                'auto_install_minor': $("#auto_install_minor").prop('checked'),
+                'invoicing_mode': $("#invoicing_mode option:selected").val(),
+                'force_theme': $("#forceTheme option:selected").val()
+            }, function (data) {
+                toastr.success('{ :m_saved_long }', '{ :m_saved }')
+            });
+        }
+
+        const updateAccountingSettings = () => {
+            $(".accounting_provider_settings").hide();
+
+            const sel = $("#accounting_provider").val();
+            $(`#${sel}Settings`).css('display', 'flex');
+        }
+
+        const checkAccountingConnection = async () => {
+            const prom = new Promise((resolve, reject) => {
+                $.get('{ :app_url }admin/invoicing/test-connection').then(e => {
+                    if (e.error) {
+                        reject(e);
+                    } else {
+                        resolve(e);
+                    }
+                });
+            })
+            toastr.promise(prom, '{ :m_invoicing_loading }', '{ :m_invoicing_test_done }', (e) => '{ :m_invoicing_test_failed }' + e.message);
+        }
+
+        const createAccountingTestInvoice = async () => {
+            const prom = new Promise((resolve, reject) => {
+                $.get('{ :app_url }admin/invoicing/create-test-invoice').then(e => {
+                    if (e.error) {
+                        reject(e)
+                    } 
+                    resolve(e)
+                })
+            })
+            toastr.promise(
+                prom, 
+                '{ :m_invoicing_loading }', 
+                (result) => 
+                    '{ :m_invoicing_test_created }'.replace('{{id}}', result.message), 
+                (error) => 
+                    '{ :m_invoicing_test_failed }' + error.message);
+        }
+    </script>
+
+</body>
+
+</html>

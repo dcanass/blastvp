@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        .form-check .form-check-label .input-helper::after,
+        .form-check .form-check-label .input-helper::before {
+            content: none !important;
+            top: 0 !important;
+            translate: none !important;
+            transform: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-lg-12 grid-margin stretch-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{ :m_title }</h4>
+                                        <div class="card-description">
+                                            <button class="btn btn-success ml-auto mb-2 float-right"
+                                                onclick="showDialog()">
+                                                { :m_create }</button>
+                                            <p>{ :m_desc }</p>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="table-responsive">
+                                                { if :vouchers }
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>#</td>
+                                                            <td>{ :m_tbl_1 }</td>
+                                                            <td>{ :m_tbl_2 }</td>
+                                                            <td>{ :m_tbl_3_1 } / { :m_tbl_3_2 }</td>
+                                                            <td>{ :m_tbl_4 }</td>
+                                                            <td>{ :m_tbl_5_1 } / { :m_tbl_5_2 }</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        { foreach :c in :vouchers }
+                                                        <tr>
+                                                            <td>{ :c.id }</td>
+                                                            <td>{ :c.code }</td>
+                                                            <td>
+                                                                <?php if ($c['usagePerCustomer'] ==
+                                                                -1):?>&infin;<?php else: ?>
+                                                                { :c.usagePerCustomer }<?php endif; ?> /
+                                                                <?php if ($c['usageTotal'] == -1): ?>&infin;<?php else: ?>
+                                                                { :c.usageTotal }<?php endif; ?>
+                                                            </td>
+                                                            <td>
+                                                                <?php if ($c['voucherBase']=="balance"):?>
+                                                                { :m_tbl_3_1 }
+                                                                { else }
+                                                                { :m_tbl_3_2 }
+                                                                { endif }
+                                                            </td>
+                                                            <td>
+                                                                <?php if ($c['voucherBase']=="balance"):?>
+                                                                <?= \Objects\Formatters::formatBalance($c['voucherBalanceVolume']); ?>
+                                                                { else }
+                                                                <?php if ($c['voucherType'] == "percentage"): ?>
+                                                                { :c.voucherTypePercent } %
+                                                                { else }
+                                                                <?= \Objects\Formatters::formatBalance($c['voucherTypeAmount']); ?>
+                                                                { endif }
+                                                                { endif }
+                                                            </td>
+                                                            <td>
+                                                                <?php if ($c['voucherBase']=="product"):?>
+                                                                <?php if ($c['voucherRecurring'] == 'recurring'): ?>
+                                                                { :m_tbl_5_2 }
+                                                                { else }
+                                                                { :m_tbl_5_1 }
+                                                                { endif }
+                                                                { else }
+                                                                -
+                                                                { endif }
+                                                            </td>
+                                                            <td style="white-space: nowrap; width: 1%;">
+                                                                <button class="btn btn-warning btn-sm ml-1"
+                                                                    data-id="{ :c.id }"
+                                                                    onclick="deleteVoucher({ :c.id })">
+                                                                    { :m_btn_delete }</button>
+                                                            </td>
+                                                        </tr>
+                                                        { endforeach }
+                                                    </tbody>
+                                                </table>
+                                                { else }
+                                                <h3 class="text-center">{ :m_no_entries }</h3>
+                                                { endif }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <div class="modal fade" id="editModal" data-action="" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_create }</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div id="validationAlert" class="row col-12 alert alert-warning m-0 mb-3" role="alert"
+                        style="display: none;">
+
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p>{ :m_tbl_1 }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" id="code" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p>{ :m_create_per_customer }</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="usagePerCustomer" class="form-control" value="1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p>{ :m_create_total }</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="usageTotal" class="form-control" value="1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="col-form-label">{ :m_tbl_3_1 }/{ :m_tbl_3_2 }</label>
+                                <select name="user" id="voucherBase" class="form-control">
+                                    <option value="1">{ :m_tbl_3_1 }</option>
+                                    <option value="2">{ :m_tbl_3_2 }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="voucherBalanceVolumeWrapper">
+                        <div class="col-6">
+                            <p>{ :m_tbl_3_1 }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="voucherBalanceVolume" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row" style="display: none;" id="voucherTypeWrapper">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="col-form-label">{ :m_create_type_1 }</label>
+                                <select name="user" id="voucherType" class="form-control">
+                                    <option value="1">{ :m_create_type_2 }</option>
+                                    <option value="2">{ :m_create_type_3 }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="voucherTypePercentWrapper" style="display: none;">
+                        <div class="col-6">
+                            <p>{ :m_create_type_2 }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="voucherTypePercent" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row" id="voucherTypeAmountWrapper" style="display: none;">
+                        <div class="col-6">
+                            <p>{ :m_create_amount }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="voucherTypeAmount" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row" style="display: none;" id="voucherRecurringWrapper">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="col-form-label">{ :m_tbl_5_1 }/{ :m_tbl_5_2 }</label>
+                                <select name="user" id="voucherRecurring" class="form-control">
+                                    <option value="1">{ :m_tbl_5_1 }</option>
+                                    <option value="2">{ :m_tbl_5_2 }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">
+                        { :m_charge_btn_close }</button>
+                    <button type="button" class="btn btn-success" id="saveBtn" onclick="postCreate()">
+                        { :m_create }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const showDialog = () => {
+        $('#editModal').modal('show');
+        // validate();
+    };
+
+    $('select, input').on('change', () => {
+        validate();
+    });
+
+    $('select, input').on('input', () => {
+        validate();
+    })
+
+    let code = $("#code").val();
+    let usagePerCustomer = $("#usagePerCustomer").val();
+    let usageTotal = $("#usageTotal").val();
+    let voucherBase = $("#voucherBase").val();
+    let voucherBalanceVolumeWrapper = $("#voucherBalanceVolumeWrapper");
+    let voucherTypeWrapper = $("#voucherTypeWrapper");
+    let voucherRecurringWrapper = $("#voucherRecurringWrapper");
+    let voucherRecurring = $("#voucherRecurring").val();
+    let voucherTypeAmountWrapper = $("#voucherTypeAmountWrapper");
+    let voucherTypePercentWrapper = $("#voucherTypePercentWrapper");
+    let voucherType = $("#voucherType").val();
+    let voucherBalanceVolume = $("#voucherBalanceVolume").val();
+    let voucherTypeAmount = $("#voucherTypeAmount").val();
+    let voucherTypePercent = $("#voucherTypePercent").val();
+
+    const updateParams = () => {
+        code = $("#code").val();
+        usagePerCustomer = $("#usagePerCustomer").val();
+        usageTotal = $("#usageTotal").val();
+        voucherBase = $("#voucherBase").val();
+        voucherBalanceVolumeWrapper = $("#voucherBalanceVolumeWrapper");
+        voucherTypeWrapper = $("#voucherTypeWrapper");
+        voucherRecurringWrapper = $("#voucherRecurringWrapper");
+        voucherTypeAmountWrapper = $("#voucherTypeAmountWrapper");
+        voucherTypePercentWrapper = $("#voucherTypePercentWrapper");
+        voucherType = $("#voucherType").val();
+        voucherBalanceVolume = $("#voucherBalanceVolume").val();
+        voucherTypeAmount = $("#voucherTypeAmount").val();
+        voucherTypePercent = $("#voucherTypePercent").val();
+        voucherRecurring = $("#voucherRecurring").val();
+    }
+
+    const postCreate = () => {
+        $.post('{ :app_url }admin/vouchers/create', {
+            code,
+            usagePerCustomer,
+            usageTotal,
+            voucherBase,
+            voucherType,
+            voucherBalanceVolume,
+            voucherRecurring,
+            voucherTypeAmount,
+            voucherTypePercent
+        }, (data) => {
+            if (data.error) {
+                showError(data.message);
+            } else {
+                console.log(data);
+                window.location.reload();
+            }
+        });
+    }
+
+    const validate = () => {
+
+        updateParams();
+
+        $("#validationAlert").hide();
+        $("#saveBtn").removeAttr('disabled')
+        // validate all
+        if ($("#code").val().trim() == "") {
+            // invalid voucher
+            showError('Invalider Code!')
+            return
+        }
+        if (usagePerCustomer < 0 || usageTotal < 0) {
+            showError('{ :m_create_error_1 }')
+            return
+        }
+
+        if (usagePerCustomer >= 999 || usageTotal >= 999) {
+            showError(
+                '{ :m_create_error_2 }'
+            )
+            return
+        }
+        if (voucherBase == "1") {
+            voucherBalanceVolumeWrapper.show();
+            voucherTypeWrapper.hide();
+        }
+
+        if (voucherBase == "2") {
+            voucherBalanceVolumeWrapper.hide();
+            voucherTypeWrapper.show();
+            voucherRecurringWrapper.show();
+        } else {
+            voucherRecurringWrapper.hide();
+            voucherTypeAmountWrapper.hide();
+            voucherTypePercentWrapper.hide();
+        }
+
+        if (voucherType == "1" && voucherBase == "2") {
+            voucherTypePercentWrapper.show();
+            voucherTypeAmountWrapper.hide();
+        }
+
+        if (voucherType == "2" && voucherBase == "2") {
+            voucherTypeAmountWrapper.show();
+            voucherTypePercentWrapper.hide();
+        }
+
+    }
+
+    const deleteVoucher = (id) => {
+        event.preventDefault();
+        let element = $(event.currentTarget);
+
+        $.get('{ :app_url }admin/vouchers/delete/' + id, (data) => {
+            $(element).closest('tr').remove()
+        });
+    }
+
+    const showError = (message) => {
+        $("#saveBtn").attr('disabled', 'disabled');
+        $('#validationAlert').show();
+        $("#validationAlert").html(message);
+    }
+</script>
+
+</html>

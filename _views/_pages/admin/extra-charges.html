@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        .form-check .form-check-label .input-helper::after,
+        .form-check .form-check-label .input-helper::before {
+            content: none !important;
+            top: 0 !important;
+            translate: none !important;
+            transform: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-lg-12 grid-margin stretch-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{ :m_title }</h4>
+                                        <div class="row justify-content-start">
+                                            <div class="col-12 col-sm-10">
+                                                <p class="card-description">
+                                                    { :m_description }
+                                                </p>
+                                            </div>
+                                            <div class="col-auto col-sm-2" style="white-space: nowrap;">
+                                                <button class="btn btn-success float-right" onclick="createEntry()"><i
+                                                        class="mdi mdi-plus"></i>
+                                                    { :m_charge_create_btn }</button>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="table-responsive">
+                                                { if :charges }
+                                                <table class="table table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>#</td>
+                                                            <td>{ :m_charge_active }</td>
+                                                            <td>{ :m_charge_type_1 }/{ :m_charge_type_2 }</td>
+                                                            <td>{ :m_charge_calculation }</td>
+                                                            <td>{ :m_charge_price }</td>
+                                                            <td>{ :m_charge_extra }</td>
+                                                            <td>{ :m_charge_description }</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        { foreach :c in :charges }
+                                                        <tr onclick="deleteExtra" data-id="{ :c.id }"
+                                                            data-type="{ :c.type }" data-calctype="{ :c.calcType }"
+                                                            data-price="{ :c.price }" data-calconly="{ :c.calcOnly }"
+                                                            data-description="{ :c.description }"
+                                                            data-vmid="{ :c.osid }" data-recurring="{ :c.recurring }"
+                                                            data-active="{ :c.active }">
+                                                            <td>{ :c.id }</td>
+                                                            <td>
+                                                                <div class="form-check">
+                                                                    <input
+                                                                        onclick="toggleActive({ :c.active }, { :c.id })"
+                                                                        type="checkbox"
+                                                                        <?= $c['active'] ? "checked=\"checked\"" : "" ?>
+                                                                        id="flexCheckIndeterminate">
+                                                                </div>
+                                                            </td>
+                                                            <td><?= ${"m_charge_type_" . $c['type']} ?></td>
+                                                            <td><?= $c['calcType'] == 1 ? $m_charge_calcuation_fixed : $m_charge_calculation_percentage ?>
+                                                            </td>
+                                                            <td><?= $c['calcType'] == 1 ? \Objects\Formatters::formatBalance(($c['price'])) : \Objects\Formatters::formatPercentage(($c['price'])) ?>
+                                                            </td>
+                                                            <td><?= ${"m_charge_public_" . $c['calcOnly']} ?></td>
+                                                            <td>{ :c.description }</td>
+                                                            <td style="white-space: nowrap; width: 1%;">
+                                                                <button class="btn btn-primary btn-sm ml-1"
+                                                                    onclick="editEntry()">{ :m_charge_edit }</button>
+                                                                <button class="btn btn-warning btn-sm ml-1"
+                                                                    data-id="{ :c.id }" onclick="deleteExtra()">
+                                                                    { :m_charge_delete }</button>
+                                                            </td>
+                                                        </tr>
+                                                        { endforeach }
+                                                    </tbody>
+                                                </table>
+                                                { else }
+                                                <h3 class="text-center">{ :m_no_extras }</h3>
+                                                { endif }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <div class="modal fade" id="editModal" data-action="" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold" id="modalTitle"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p>{ :m_charge_description }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" id="editDescription" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="" class="col-form-label">{ :m_charge_calculation }:</label>
+                                <select name="" id="editCalcType" class="form-control">
+                                    <option value="1">{ :m_charge_calcuation_fixed }</option>
+                                    <option value="2">{ :m_charge_calculation_percentage }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <p id="editPriceText">{ :m_charge_price }:</p>
+                        </div>
+                        <div class="col-6">
+                            <input type="text" id="editPrice" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" id="editCalcOnly" class="form-check-input">
+                                <label class="form-check-label" for="editCalcOnly">{ :m_charge_extra }</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="col-form-label">{ :m_charge_type_1 }/{ :m_charge_type_2 }</label>
+                                <select name="user" id="editType" class="form-control">
+                                    <option value="1">{ :m_charge_type_1 }</option>
+                                    <option value="2">{ :m_charge_type_2 }</option>
+                                    <option value="3">{ :m_charge_type_3 }</option>
+                                    <option value="4">{ :m_charge_type_4 }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="col-form-label">{ :m_charge_recurring_title }</label>
+                                <select name="user" id="editRecurring" class="form-control">
+                                    <option value="0">{ :m_charge_single }</option>
+                                    <option value="1">{ :m_charge_monthly }</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="editVmidBox" style="display: none;">
+                        <div class="col-6">
+                            <p>Template:</p>
+                        </div>
+                        <div class="col-6">
+                            <select type="text" id="editVmid" class="form-control"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">
+                        { :m_charge_btn_close }</button>
+                    <button type="button" class="btn btn-success" id="saveBtn" onclick="saveEntry()"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    { include("_views/partials/_success-modal.html") }
+
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12" id="thanks">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_error }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- failed -->
+                        <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                            <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                            <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                            <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="errorMessage">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script>
+        function deleteExtra() {
+            event.preventDefault();
+            let element = $(event.currentTarget);
+            let id = element.data('id');
+            $.get(`{ :app_url }admin/settings/extra-charges/delete/${id}`, (data) => {
+                $("#successModal").modal('show');
+                $("#successMessage").html("{ :m_charge_deleted }")
+                $(element).closest('tr').remove()
+            })
+        }
+
+        function createEntry() {
+            event.preventDefault();
+
+            $("#modalTitle").text('{ :m_charge_modal_title_create }');
+            $("#saveBtn").text('{ :m_charge_create_btn }');
+
+            $("#editDescription").val('');
+            $("#editPrice").val('');
+            $("#editCalcOnly").removeAttr('checked');
+            $("#editRecurring").val('');
+            $("#editType").val('');
+            $("#editVmidBox").hide();
+            $("#editCalcType").val('1');
+
+            updateCalcType();
+
+            $('#editModal').modal('show');
+            $("#editModal").data('action', 'create');
+        }
+
+        function editEntry() {
+            event.preventDefault()
+            let element = $(event.currentTarget).parent().parent();
+
+            let id = element.data('id');
+            let type = element.data('type');
+            let calcType = element.data('calctype');
+            let recurring = element.data('recurring');
+            let price = element.data('price');
+            let calcOnly = element.data('calconly');
+            let description = element.data('description');
+            let vmid = element.data('vmid');
+
+            $("#modalTitle").text('{ :m_charge_modal_title_edit }');
+            $("#saveBtn").text('{ :m_charge_btn_save }');
+
+            $('#editModal').modal('show');
+            $("#editModal").data('id', id);
+            $("#editModal").data('action', 'edit');
+            $("#editCalcType").val(calcType);
+
+            $("#editDescription").val(description);
+            $("#editPrice").val(price);
+
+            if (!calcOnly) {
+                $("#editCalcOnly").attr('checked', 'checked');
+            } else {
+                $("#editCalcOnly").removeAttr('checked');
+            }
+
+            $("#editRecurring").val(recurring);
+
+            updateCalcType();
+            $("#editVmidBox").hide();
+            if ([2, 4].includes(type)) {
+                $("#editVmidBox").show();
+                $("#editVmid").val(vmid);
+
+            }
+            $("#editType").val(type);
+        }
+
+        function saveEntry() {
+            let id = $("#editModal").data('id');
+            let description = $("#editDescription").val();
+            let price = $("#editPrice").val();
+            let calcOnly = !$("#editCalcOnly").is(':checked');
+            let type = $("#editType").val();
+            let calcType = $("#editCalcType").val();
+            let vmid = $("#editVmid").val();
+            let recurring = $("#editRecurring").val();
+
+            // get action
+            const action = $("#editModal").data('action');
+            if (action == "edit") {
+                $.post(`{ :app_url }admin/settings/extra-charges/edit/${id}`, {
+                    id,
+                    description,
+                    price,
+                    calcOnly,
+                    type,
+                    calcType,
+                    vmid,
+                    recurring
+                }, (data) => {
+                    $('#editModal').modal('hide');
+                    $("#successModal").modal('show');
+                    $("#successMessage").html("{ :m_charge_saved }")
+                    reload(2000);
+                })
+            } else if (action == "create") {
+                if ((type == "2" || type == "4") && !vmid) {
+                    $("#errorModal").modal('show');
+                    $("#errorMessage").html('{ :m_charge_error_novmid }')
+                    return;
+                }
+                if (description.trim() == "" || price.trim() == "") {
+                    $("#errorModal").modal('show');
+                    $("#errorMessage").html('{ :m_charge_error_invalid }')
+                    return;
+                }
+
+                $.post(`{ :app_url }admin/settings/extra-charges/create`, {
+                    description,
+                    price,
+                    calcOnly,
+                    type,
+                    calcType,
+                    vmid,
+                    recurring
+                }, (data) => {
+                    $('#editModal').modal('hide');
+                    $("#successModal").modal('show');
+                    $("#successMessage").html("{ :m_charge_created }")
+                    reload(2000);
+                })
+            }
+        }
+
+        $("#editType").on('change', () => {
+            $("#editVmidBox").hide();
+            if (["2", "4"].includes($("#editType").val())) {
+                // osbased
+                $("#editVmidBox").show();
+            }
+        });
+        const updateCalcType = () => {
+            const value = $("#editCalcType").val();
+            $("#editPriceText").html(value == "1" ? "{ :m_charge_price }:" : "{ :m_charge_percentage }:")
+        }
+
+        $("#editCalcType").on('change', () => {
+            updateCalcType()
+        })
+
+        const toggleActive = (active, id) => {
+            $.post('{ :app_url }admin/settings/extra-charges/toggle', {
+                chargeId: id,
+                currently: active
+            }, (data) => {
+                if (data.success) {
+                    toastr.success('{ :m_charge_saved }')
+                }
+            })
+        }
+
+        $(() => {
+            $.get('{ :app_url }api/host/load-isos', (data) => {
+                data.forEach((ele) => {
+                    $("#editVmid").append(new Option(ele.displayName, ele.vmid));
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>

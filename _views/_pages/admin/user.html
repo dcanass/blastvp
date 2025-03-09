@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    { css css/skeleton.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card" v-if="!loading">
+                            <div class="card">
+                                <div class="card-body">
+                                    <span class="dropdown float-right">
+                                        <span class="btn btn-sm btn-secondary text-center" type="button"
+                                            id="actionButtons" data-toggle="dropdown" aria-haspopup="true"
+                                            aria-expanded="false">
+                                            <i class="mdi mdi-dots-vertical"></i>
+                                        </span>
+
+                                        <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="actionButtons">
+                                            <a v-if="isAdmin" href="#" @click="loginAsUser(user.id)"
+                                                class="dropdown-item">
+                                                { :m_login_as } <i class="mdi mdi-login"></i>
+                                            </a>
+                                            <li>
+                                                <a href="#" class="dropdown-item">{ :m_balance } &raquo;</a>
+                                                <ul class="dropdown-menu dropdown-submenu dropdown-submenu-left">
+                                                    <li>
+                                                        <a href="#" class="dropdown-item"
+                                                            @click="() => { showBalanceAdd = true; isBalanceAdd = true; }">
+                                                            { :m_balance_add }</a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#" class="dropdown-item"
+                                                            @click="() => { showBalanceAdd = true; isBalanceAdd = false; }">
+                                                            { :m_balance_remove }</a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li v-if="isAdmin && aclUser.id != user.id">
+                                                <a href="#" class="dropdown-item">{ :m_rank } &raquo;</a>
+                                                <ul class="dropdown-menu dropdown-submenu dropdown-submenu-left">
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" @click="setRank(1)">
+                                                            { :m_customer }</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" @click="setRank(2)">
+                                                            { :m_supporter }</a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" @click="setRank(3)">
+                                                            { :m_admin }</a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <a v-if="user.permission < 2" class="dropdown-item" href="#" @click="showPasswordReset = true">
+                                                { :m_set_password }</a>
+                                            <a href="#" @click="showTags = true" v-if="canDelete"
+                                                class="dropdown-item">{ :m_tags }</a>
+                                            <a v-if="isAdmin && user.twofaEnabled" href="#"
+                                                @click="showDisable2FA = true" class="dropdown-item">
+                                                { :m_disable_twofa }</a>
+                                            <a v-if="isAdmin" class="dropdown-item" href="#" @click="showDelete = true">
+                                                { :m_delete_user }</a>
+                                        </ul>
+                                    </span>
+                                    <div>
+                                        <h4 class="card-title">{ :m_title }: {{user.name}} ({{user.rank}})</h4>
+                                        <p class="mb-0">{{user.email}}</p>
+                                        <p>{ :m_balance }: {{user.balance.balance}}</p>
+                                        <div class="row">
+                                            <div class="col-auto">
+                                                <img style="max-width: 120px;" :src="user.profilePicture" alt=""
+                                                    srcset="">
+                                            </div>
+                                            <div class="col-5">
+                                                <p class="mb-0">{{ user.address.address1 }}</p>
+                                                <p class="mb-0">{{ user.address.address2 }}</p>
+                                                <p class="mb-0">{{ user.address.zipcode }} {{ user.address.city }}</p>
+                                                <p class="mb-0">{{ user.address.state }} <span v-if="user.address.state">, </span>{{user.address._country}}</p>
+                                                <br>
+                                                <p class="mb-0">2FA:
+                                                    {{ user.twofaEnabled ? (`{ :m_2fa_enabled }, ${$options.filters.formatDate(user.twofaEnabled)}`) : '{ :m_2fa_disabled }' }}
+                                                </p>
+                                            </div>
+                                            <div class="col-5">
+                                                <p class="mb-0">{ :m_birthday }: {{$options.filters.formatDate(user.address.birthday, false)}}</p>
+                                                <p class="mb-0">{ :m_phone }: {{user.address.phone}}</p>
+                                                <p class="mb-0">{ :m_vat }: {{user.address.vatId}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-lg-12 grid-margin">
+                                            <div class="card">
+                                                <div class="card-body px-0">
+                                                    <h4>{ :m_tbl_title }</h4>
+                                                    <div class="table-responsive" id="server-tables"
+                                                        v-if="!serversLoading">
+                                                        <table class="table table-hover" v-if="servers.length > 0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>
+                                                                        { :m_tbl_2 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_3 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_4 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_5 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_6 }
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr v-for="server in servers" :key="server.id"
+                                                                    @click="gotoServer(server.id)">
+                                                                    <td>
+                                                                        <span v-tooltip="server._status"
+                                                                            class="status-indicator" :class="{ 
+                                                                                online: server.status == 'online', 
+                                                                                offline: server.status == 'offline', 
+                                                                                suspended: server.status == 'suspended',
+                                                                                loading: ['starting', 'stopping'].includes(server.status)
+                                                                            }">
+                                                                        </span>
+                                                                        {{ server.hostname }}
+                                                                    </td>
+                                                                    <td>
+                                                                        <span v-if="server.ip">{{ server.ip }}</span><span
+                                                                            v-if="server.ip && server.ip6"> / </span><span
+                                                                            v-if="server.ip6">{{server.ip6}}</span>
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ server.nextPayment | formatDate }}
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ server.createdAt | formatDate }}
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ server.priceFormatted }}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <div v-else>
+                                                            <p>{ :m_no_servers }</p>
+                                                        </div>
+                                                        <pagination class="mt-4" v-model="serverPaging.page"
+                                                            :records="serverPaging.count" :per-page="serverPaging.size"
+                                                            :options="{ theme: 'bootstrap4', edgeNavigation: true, texts: { count: '{ :m_pagination_default }', first: '{ :m_pagination_first }', last: '{ :m_pagination_last }' } }">
+                                                        </pagination>
+                                                    </div>
+                                                    <div v-else class="text-center">
+                                                        <spinner></spinner>
+                                                    </div>
+                                                    <div :class="mod.classes" class="mb-4" v-for="(mod, k) in mods">
+                                                        <hr>
+                                                        <component :is="mod.component" />
+                                                    </div>
+                                                    <hr>
+                                                    <div class="row">
+                                                        <div class="col-10">
+                                                            <h4>{ :m_tickets_open }</h4>
+                                                        </div>
+                                                        <div class="col-2">
+                                                            <select v-model="ticketPaging.status" type="select"
+                                                                class="custom-select w-min">
+                                                                <option value="null">All</option>
+                                                                <option value="0">Open</option>
+                                                                <option value="1">Closed</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12 grid-margin mt-2" v-if="!ticketsLoading">
+                                                            <div class="fluid-container col-12"
+                                                                v-if="tickets.length > 0">
+                                                                <div v-for="ticket in tickets" :key="ticket.id"
+                                                                    class="row ticket-card mt-3 pb-2 border-bottom pb-3 mb-3">
+                                                                    <div class="col-md-1">
+                                                                        <img class="img-sm rounded-circle mb-4 mb-md-0"
+                                                                            :src="ticket.assigned.profilePicture"
+                                                                            alt="profile image">
+                                                                    </div>
+                                                                    <div class="ticket-details col-md-9">
+                                                                        <div class="d-flex">
+                                                                            <p
+                                                                                class="font-weight-semibold mr-2 mb-0 no-wrap">
+                                                                                {{ticket.assigned.name}}:
+                                                                            </p>
+                                                                            <p class="text-primary mr-1 mb-0">
+                                                                                [#{{ticket.id}}]</p>
+                                                                            <p class="mb-0 ellipsis">{{ticket.title}}
+                                                                            </p>
+                                                                        </div>
+                                                                        <p class="ellipsis mb-2">{{ticket.message}}
+                                                                        </p>
+                                                                        <div class="row d-md-flex d-none">
+                                                                            <div class="col-4 d-flex">
+                                                                                <small
+                                                                                    class="mb-0 mr-2 text-muted text-muted">
+                                                                                    { :m_tickets_last_respond }
+                                                                                </small>
+                                                                                <small
+                                                                                    class="Last-responded mr-2 mb-0 text-muted text-muted">
+                                                                                    {{ ticket.updatedAt }}
+                                                                                </small>
+                                                                            </div>
+                                                                            <div class="col-4 d-flex">
+                                                                                <small
+                                                                                    class="mb-0 mr-2 text-muted text-muted">
+                                                                                    { :m_tickets_opened }</small>
+                                                                                <small
+                                                                                    class="Last-responded mr-2 mb-0 text-muted text-muted">
+                                                                                    {{ ticket.createdAt }}
+                                                                                </small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="ticket-actions col-md-2">
+                                                                        <div class="btn-group">
+                                                                            <a type="button"
+                                                                                class="btn btn-success btn-sm text-white"
+                                                                                :href="`{ :app_url }support/${ticket.id}`">
+                                                                                { :m_tickets_show_more }
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else>
+                                                                <p>{ :m_no_tickets }</p>
+                                                            </div>
+                                                            <pagination class="mt-4" v-model="ticketPaging.page"
+                                                                :records="ticketPaging.count"
+                                                                :per-page="ticketPaging.size"
+                                                                :options="{ theme: 'bootstrap4', edgeNavigation: true, texts: { count: '{ :m_pagination_default }', first: '{ :m_pagination_first }', last: '{ :m_pagination_last }' } }">
+                                                            </pagination>
+                                                        </div>
+                                                        <div v-else class="col-12 text-center">
+                                                            <spinner></spinner>
+                                                        </div>
+                                                    </div>
+
+                                                    <h4>{ :m_invoices }</h4>
+                                                    <div class="table-responsive" v-if="!invoicesLoading">
+                                                        <table class="table table-striped table-hover"
+                                                            v-if="invoices.length > 0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>
+                                                                        { :m_tbl_h_1 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_h_2 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_h_3 }
+                                                                    </th>
+                                                                    <th>
+                                                                        { :m_tbl_h_5 }
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr v-for="invoice in invoices" :key="invoice.id">
+                                                                    <td class="py-1">
+                                                                        #{{ invoice.id }}
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ invoice._type }}
+                                                                    </td>
+                                                                    <td>{{ invoice._createdAt }}</td>
+                                                                    <td>
+                                                                        <span
+                                                                            :class="{ 'text-success': invoice.type == 1, 'text-danger': invoice.type == 2, 'text-info': invoice.type == 3}">
+                                                                            {{ invoice._amount }}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                        <div v-else>
+                                                            <p class="">{ :m_no_invoices }</p>
+                                                        </div>
+                                                        <pagination class="mt-4" v-model="invoicePaging.page"
+                                                            :records="invoicePaging.count"
+                                                            :per-page="invoicePaging.size"
+                                                            :options="{ theme: 'bootstrap4', edgeNavigation: true, texts: { count: '{ :m_pagination_default }', first: '{ :m_pagination_first }', last: '{ :m_pagination_last }' } }">
+                                                        </pagination>
+                                                    </div>
+                                                    <div v-else class="text-center">
+                                                        <spinner></spinner>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- pw reset -->
+                    <Modal :show="showPasswordReset" @hide="showPasswordReset = false" title="{ :m_set_password }"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="form-group">
+                                <input id="passwordSetInput" v-model="passwordToSet" placeholder="********"
+                                    class="form-control" type="text">
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" :disabled="passwordToSet == ''" class="btn btn-danger" id="saveBtn"
+                                @click="resetPassword()">
+                                { :m_set_password }</button>
+                        </template>
+                    </Modal>
+
+                    <!-- delete -->
+                    <Modal :show="showDelete" @hide="showDelete = false" title="{ :m_warning }"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <p>{ :m_are_you_sure } {{ confirmationTextDelete }}</p>
+
+                            <input ref="deleteInput" class="form-control text-center" :placeholder="confirmTextDelete"
+                                v-model="deleteConfirmationText">
+                        </template>
+                        <template #footer>
+                            <button type="button" :disabled="loading || deleteConfirmationText != confirmTextDelete"
+                                class="btn btn-danger" id="saveBtn" @click="deleteUser()">
+                                { :m_delete }</button>
+                        </template>
+                    </Modal>
+
+                    <!-- balance -->
+                    <Modal :show="showBalanceAdd" @hide="showBalanceAdd= false"
+                        :title="isBalanceAdd ? '{ :m_balance_add }' : '{ :m_balance_remove }'"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="form-group">
+                                <input id="balanceActionInput" placeholder="12.34" class="form-control" type="number"
+                                    min="0" value="" v-model="balanceToAdd">
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" :disabled="!balanceToAdd" class="btn btn-primary" id="saveBtn"
+                                @click="submitBalance()">
+                                {{isBalanceAdd ? '{ :m_balance_add }' : '{ :m_balance_remove }'}}</button>
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showTags" @hide="showTags= false" :title="`Tags`" close-text="{ :m_close_btn }">
+                        <template #body>
+                            <Tags hint-text="{ :m_tags_hinttext }" :resource="`user-${user.id}`" ref="tags" />
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-primary" id="saveBtn" @click="saveTags()">
+                                { :m_save }
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showDisable2FA" @hide="showDisable2FA = false" :title="`{ :m_2fa }`"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <p>{ :m_2fa_disable_confirm }</p>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-danger" id="saveBtn" @click="disable2FA()">
+                                { :m_disable }
+                        </template>
+                    </Modal>
+                </div>
+
+
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import '{ :app_url }js/components/filters.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        import '{ :app_url }js/components/pagination.js'
+        import Spinner from '{ :app_url }js/components/spinner.js'
+        import Tags from '{ :app_url }js/components/tags.js'
+
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+        
+        const mods = JSON.parse('{ :vueModules }');
+        const mo = {};
+
+        await Promise.all(mods.map(async e => {
+            mo[e.component] = (await import(e.handler))[e.name]
+        }));
+
+        var app = new Vue({
+            components: { ...mo, Pagination, Spinner, Modal, Tags },
+            el: "#app",
+            data: {
+                mods,
+                loading: true,
+                user: { id: "<?= $user->getId() ?>" },
+                invoices: [],
+                invoicePaging: {
+                    page: 1,
+                    count: 0,
+                    size: 10
+                },
+                invoicesLoading: true,
+                tickets: [],
+                ticketPaging: {
+                    page: 1,
+                    count: 0,
+                    size: 10,
+                    status: null
+                },
+                ticketsLoading: true,
+                servers: [],
+                serverPaging: {
+                    page: 1,
+                    count: 0,
+                    size: 10,
+                },
+                serversLoading: true,
+                showPasswordReset: false,
+                passwordToSet: '',
+                showDelete: false,
+                deleteConfirmationText: "",
+                showBalanceAdd: false,
+                balanceToAdd: null,
+                isBalanceAdd: true,
+                showTags: false,
+                showDisable2FA: false
+            },
+            created: async function() {
+                await this.loadData();
+            },
+            methods: {
+                loadData: async function() {
+                    const user = await $.get('{ :app_url }api/admin/users/' + this.user.id);
+                    this.user = user.data;
+                    await this.loadInvoices();
+                    await this.loadTickets();
+                    await this.loadServers();
+                    this.loading = false;
+                },
+                loadInvoices: async function() {
+                    this.invoicesLoading = true;
+                    const invoices = await $.post('{ :app_url }api/admin/invoices', {
+                        userId: this.user.id,
+                        page: this.invoicePaging.page
+                    });
+                    this.invoices = invoices.data
+                    this.invoicePaging.count = invoices.paging.count
+                    this.invoicesLoading = false;
+                },
+                loadTickets: async function() {
+                    this.ticketsLoading = true;
+                    const tickets = await $.post('{ :app_url }api/admin/tickets', {
+                        userId: this.user.id,
+                        page: this.ticketPaging.page,
+                        status: this.ticketPaging.status
+                    });
+                    this.tickets = tickets.data;
+                    this.ticketPaging.count = tickets.paging.count;
+                    this.ticketsLoading = false;
+                },
+                loadServers: async function() {
+                    this.serversLoading = true;
+                    const servers = await $.post('{ :app_url }api/admin/servers', {
+                        userId: this.user.id,
+                        page: this.serverPaging.page,
+                        status: this.serverPaging.status
+                    });
+                    this.servers = servers.data;
+                    
+                    // fix reactivity lol
+                    this.servers.map(e => e.id);
+                    
+                    this.serverPaging.count = servers.paging.count;
+                    this.serversLoading = false;
+                },
+                loginAsUser: async function(id) {
+                    const data = await $.post(`${app_url}api/admin/login-as/${id}`);
+                    if (!data.error) {
+                        window.location = "{ :app_url }dashboard";
+                    }
+                },
+                goTo: function(id) {
+                    window.location = `{ :app_url }admin/users/${id}`;
+                },
+                gotoServer: function(id) {
+                    window.location = `{ :app_url }server/${id}`;
+                },
+                setRank: async function(rank) {
+                    console.log('executed handler function');
+                    const prom = $.get(`{ :app_url }api/admin/set-rank/${this.user.id}/${rank}`);
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => 
+                            '{ :m_saved }', 
+                        (error) => 
+                            '{ :m_error }');
+
+                    this.loadData();
+                },
+                disable2FA: async function() {
+                    const prom =  $.patch(`${app_url}api/admin/disable-twofa/${this.user.id}`);
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => 
+                            '{ :m_saved }', 
+                        (error) => 
+                            '{ :m_error }');
+                    this.showDisable2FA = false;
+                    this.loadData();
+                },
+                resetPassword: async function() {
+                    const prom =  $.post(`${app_url}api/admin/password-reset/${this.user.id}`, {
+                        new: this.passwordToSet
+                    });
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => 
+                            '{ :m_set_password_success }', 
+                        (error) => 
+                            '{ :m_error }');
+                    this.showPasswordReset = false;
+                },
+                deleteUser: async function() {
+                    const prom = $.delete(`${app_url}api/admin/delete-user/${this.user.id}`);
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => 
+                            '{ :m_saved }', 
+                        (error) => 
+                            '{ :m_error }');
+                    redirect(`${app_url}admin/users`, 1000)
+                },
+                submitBalance: async function() {
+                    this.showBalanceAdd = false;
+                    const prom = $.post(`${app_url}api/admin/${this.isBalanceAdd ? 'add' : 'remove'}-balance/${this.user.id}`, {
+                        value: this.balanceToAdd
+                    });
+                    this.balanceToAdd = null;
+
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => 
+                            '{ :m_saved }', 
+                        (error) => 
+                            '{ :m_error }');
+                    this.loadData();
+
+                },
+                saveTags: async function() {
+                    await this.$refs.tags.save(); 
+                    toastr.success('{ :m_saved }');
+                    await this.$refs.tags.load();
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin(),
+                confirmTextDelete: function() {
+                    return "{ :m_delete_message_default }"
+                },
+                confirmationTextDelete: function() {
+                    return '{ :m_delete_message }'.replace('{{template}}', "{ :m_delete_message_default }");
+                }
+            },
+            watch: {
+                invoicePaging: {
+                    handler() {
+                        this.loadInvoices();
+                    }, 
+                    deep: true    
+                },
+                ticketPaging:{ 
+                    handler() {
+                        this.loadTickets();
+                    },
+                    deep: true
+                },
+                serverPaging:{ 
+                    handler() {
+                        this.loadServers();
+                    },
+                    deep: true
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

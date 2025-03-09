@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - IPAM - { :ipam_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :ipam_title }</h4>
+                                    <button class="btn btn-warning float-right" onclick="deleteNetwork()">
+                                        { :m_delete_network }</button>
+                                    <div class="table-responsive">
+                                        <?php if ($type == 4): ?>
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        #
+                                                    </th>
+                                                    <th>
+                                                        { :m_ip }
+                                                    </th>
+                                                    <th>{ :m_associated }</th>
+                                                    <th>
+                                                        { :m_mac }
+                                                    </th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                { foreach :ip in :range }
+                                                <tr>
+                                                    <td>{ :ip.id }</td>
+                                                    <td>{ :ip.ip }</td>
+                                                    <td>{ :ip.server }</td>
+                                                    <td>{ :ip.mac }</td>
+                                                    <td style="float: right;">
+                                                        <button class="btn btn-primary"
+                                                            onclick="openEditModal('{ :ip.id }', '{ :ip.mac }')">
+                                                            { :m_change_mac }
+                                                        </button>
+                                                        <button class="btn btn-danger"
+                                                            onclick="deleteIP('{ :ip.id }', event)">
+                                                            { :m_delete_btn }</button>
+                                                    </td>
+                                                </tr>
+                                                { endforeach }
+                                            </tbody>
+                                        </table>
+                                        { else }
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        #
+                                                    </th>
+                                                    <th>
+                                                        { :m_ip6_network }
+                                                    </th>
+                                                    <th>{ :m_associated }</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                { foreach :ip in :range }
+                                                <tr>
+                                                    <td>{ :ip.id }</td>
+                                                    <td>{ :ip.ip }</td>
+                                                    <td>{ :ip.server }</td>
+                                                    <!-- <td>{ :ip.mac }</td> -->
+                                                    <td style="float: right;">
+                                                        <!-- <button class="btn btn-primary"
+                                                            onclick="openEditModal('{ :ip.id }', '{ :ip.mac }')">MAC
+                                                            &auml;ndern</button> -->
+                                                        <button class="btn btn-danger"
+                                                            onclick="deleteIP('{ :ip.id }', event)">
+                                                            { :m_delete_btn }</button>
+                                                    </td>
+                                                </tr>
+                                                { endforeach }
+                                            </tbody>
+                                        </table>
+                                        { endif }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">{ :m_change_mac }</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{ :m_close_btn }">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <label for="" class="col-sm-4 col-form-label">{ :m_mac }</label>
+                        <div class="col-sm-8">
+                            <input id="mac" type="text" placeholder="" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                    <button type="button" class="btn btn-primary" onclick="save();">{ :m_save_btn }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script>
+        id = 0;
+        type = "{ :type }";
+        networkId = "{ :networkId }";
+        const openEditModal = (_id, mac) => {
+            id = _id;
+            $("#editModal").modal('show')
+            $("#mac").val(mac);
+        }
+
+        const save = () => {
+            $.post('{ :app_url }api/admin/ipam/update-mac/' + type + '/' + id, {
+                mac: $("#mac").val()
+            }, (data) => {
+                console.log('done');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+            })
+        }
+
+        const deleteIP = (id, event) => {
+            $.get('{ :app_url }api/admin/ipam/delete-ip/' + type + '/' + id, (data) => {
+                if (data.success) {
+                    toastr.success('{ :m_ip_deleted }');
+                    $(event.target).parent().parent().remove();
+                } else {
+                    toastr.error(data.message);
+                }
+            })
+        }
+
+        const deleteNetwork = () => {
+            $.get('{ :app_url }api/admin/ipam/delete-network/' + type + '/' + networkId, (data) => {
+                if (data.success) {
+                    toastr.success('{ :m_network_deleted }');
+                    window.location = "{ :app_url }admin/ipam";
+                } else {
+                    toastr.error(data.message);
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>

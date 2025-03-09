@@ -1,0 +1,6 @@
+{
+    "name": "BaseModule",
+    "version": "3.45.2",
+    "cronjobTask": "Module\\BaseModule\\Cron\\Cronjob::__execute",
+    "productId": 34
+}

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - Dashboard</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    { css css/skeleton.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    { css vendors/simplemde/simplemde.css }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <style>
+        .floating-container {
+            position: fixed;
+            width: 100px;
+            height: 100px;
+            bottom: 0;
+            right: 0;
+            margin: 35px 25px;
+            z-index: 999;
+        }
+
+        .floating-container .floating-button {
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            bottom: 0;
+            border-radius: 50%;
+            left: 0;
+            right: 0;
+            margin: auto;
+            color: white;
+            line-height: 65px;
+            text-align: center;
+            font-size: 23px;
+            z-index: 100;
+            cursor: pointer;
+            -webkit-transition: all 0.3s;
+            transition: all 0.3s;
+        }
+
+        .vue-grid-item {
+            background-color: red;
+        }
+    </style>
+
+    <style>
+        .sortable-ghost {
+            opacity: .5;
+            background: #C8EBFB;
+        }
+
+        .sortable-ghost .card {
+            background-color: transparent;
+        }
+
+        .border-grey {
+            border: 1px solid grey;
+            padding-top: 30px;
+            padding-bottom: 30px;
+            margin-bottom: 30px;
+        }
+
+        .border-grey .grid-margin {
+            margin-bottom: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" style="display: none;" id="app">
+                    <div data-id="widget-reorderbuttons" class="ignore">
+                        <div class="floating-container" @click="toggleEditModus" v-if="isAdmin && !editMode">
+                            <div class="floating-button bg-primary"><i class="mdi mdi-pencil"></i></div>
+                        </div>
+                        <div class="floating-container" @click="toggleEditModus" v-if="isAdmin && editMode">
+                            <div class="floating-button bg-success"><i class="mdi mdi-check"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="row" data-id="widget-warnings">
+                        { if :licenseInvalid }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-danger rounded-0 border-0 m-0">
+                                <h3>{ :m_license_warning }</h3>
+                                <p>{ :licenseInvalid }</p>
+                            </div>
+                        </div>
+                        { endif }
+                        { if :reachingUpdateError }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-danger rounded-0 border-0 m-0">
+                                <h3>{ :m_error }</h3>
+                                <p>{ :reachingUpdateError }</p>
+                            </div>
+                        </div>
+                        { endif }
+                        { if :serverDeleted }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-success rounded-0 border-0 m-0 card-body">
+                                <h4>{ :m_done }</h4>
+                                <p>{ :serverDeletedMessage }</p>
+                            </div>
+                        </div>
+                        { endif }
+                        { if :pmNotReachable }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-danger rounded-0 border-0 m-0">
+                                <h3>{ :m_warning }</h3>
+                                <p>{ :m_pm_not_reachable }</p>
+                            </div>
+                        </div>
+                        { endif }
+                        { if :accountSetupNeeded }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-warning rounded-0 border-0 m-0">
+                                <h3>{ :m_account_setup_finish_title }</h3>
+                                <p>{ :m_account_setup_finish } <a href="{ :app_url }settings">{ :m_settings }</a>.
+                                </p>
+                            </div>
+                        </div>
+                        { endif }
+                        { if :updateAvailable }
+                        <div class="col-12 grid-margin ignore">
+                            <div class="alert alert-success rounded-0 border-0 m-0">
+                                <h3>{ :nextMessage }</h3>
+                                <p>{ :m_new_version_available_text } <a href="{ :app_url }admin/settings">
+                                        { :m_settings_general }</a></p>
+                            </div>
+                        </div>
+                        { endif }
+                    </div>
+
+                    <div class="row" id="items" style="position: relative;" :class="{ 'border-grey': editMode }"
+                        data-id="widget-analytics">
+                        <div data-id="widget-ignore" v-if="editMode" style="position: absolute; top:0; right: 5px;"
+                            class="ignore-widgets">
+                            <i class="mdi mdi-reorder-horizontal item-reorder" style="cursor:grab"></i>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card" data-id="widget-1">
+                            <div class="card card-statistics">
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal widget-reorder" style="cursor:grab"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-left">
+                                            <i class="mdi mdi-cash-multiple text-danger icon-lg"></i>
+                                        </div>
+                                        <div class="float-right">
+                                            <p class="mb-0 text-right">{ :m_your_balance }</p>
+                                            <div class="fluid-container">
+                                                <h3 class="font-weight-medium text-right mb-0 mt-2"
+                                                    :class="{ 'ssc-head-line': !dashboardMeta.balance }" id="balance">
+                                                    {{dashboardMeta.balance}}
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card" data-id="widget-2">
+                            <div class="card card-statistics">
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal widget-reorder" style="cursor:grab"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-left">
+                                            <i class="mdi mdi-invoice-list text-warning icon-lg"></i>
+                                        </div>
+                                        <div class="float-right">
+                                            <p class="mb-0 text-right">{ :m_last_payment }</p>
+                                            <div class="fluid-container">
+                                                <h3 class="font-weight-medium text-right mb-0 mt-2"
+                                                    :class="{ 'ssc-head-line': !dashboardMeta.lastInvoice }"
+                                                    id="lastInvoice">{{ dashboardMeta.lastInvoice }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card" data-id="widget-3">
+                            <div class="card card-statistics">
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal widget-reorder" style="cursor:grab"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-left">
+                                            <i class="mdi mdi-chart-box text-success icon-lg"></i>
+                                        </div>
+                                        <div class="float-right">
+                                            <p class="mb-0 text-right">{ :m_active_products }</p>
+                                            <div class="fluid-container">
+                                                <h3 class="font-weight-medium text-right mb-0 mt-2"
+                                                    :class="{ 'ssc-head-line': dashboardMeta.activeProducts == undefined }"
+                                                    id="activeProducts">{{ dashboardMeta.activeProducts }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-lg-3 col-md-3 col-sm-6 grid-margin stretch-card" data-id="widget-4">
+                            <div class="card card-statistics">
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal widget-reorder" style="cursor:grab"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="clearfix">
+                                        <div class="float-left">
+                                            <i class="mdi mdi-forum text-info icon-lg"></i>
+                                        </div>
+                                        <div class="float-right">
+                                            <p class="mb-0 text-right">{ :m_open_tickets }</p>
+                                            <div class="fluid-container">
+                                                <h3 class="font-weight-medium text-right mb-0 mt-2"
+                                                    :class="{ 'ssc-head-line': dashboardMeta.openTickets == undefined }"
+                                                    id="openTickets">{{ dashboardMeta.openTickets }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" style="position: relative;" v-if="!newsLoading && news !== null"
+                        data-id="widget-news">
+                        <div class="col-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal item-reorder" style="cursor:grab"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-1 text-center ">
+                                            <i class="mdi mdi-bell text-success icon-lg"></i>
+                                        </div>
+                                        <div class="col-9">
+                                            <h3 :class="{ 'ssc-head-line': newsLoading }" class="font-weight-bold">
+                                                {{ news.title }}</h3>
+                                            <p :class="{ 'ssc-square': newsLoading }" v-html="newsContent">
+                                            </p>
+                                            <br>
+                                            <small>{{ news.username }}</small>
+                                        </div>
+                                        <div class="col-2">
+                                            <a class="w-100 btn btn-secondary pr-2" href="{ :app_url }news/archive">
+                                                { :m_news_archive }&nbsp;&nbsp;<i
+                                                    class="mdi mdi-arrow-right-thick"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="server-table" data-id="widget-servers">
+                        <div class="col-lg-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                        <i class="mdi mdi-reorder-horizontal item-reorder" style="cursor:grab"></i>
+                                    </div>
+                                    <h4 class="card-title" style="text-transform: none;">{ :m_tbl_title }</h4>
+                                    <div class="table-responsive" id="server-tables" v-if="!serversLoading">
+                                        <table class="table table-hover" v-if="servers.length > 0">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        { :m_tbl_2 }
+                                                    </th>
+                                                    <th>
+                                                        { :m_tbl_3 }
+                                                    </th>
+                                                    <th>
+                                                        { :m_tbl_4 }
+                                                    </th>
+                                                    <th>
+                                                        { :m_tbl_5 }
+                                                    </th>
+                                                    <th>
+                                                        { :m_tbl_6 }
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="server in servers" :key="server.id"
+                                                    @click="gotoServer(server.id)">
+                                                    <td>
+                                                        <span v-tooltip="server._status" class="status-indicator"
+                                                            :class="{ 
+                                                                online: server.status == 'online', 
+                                                                offline: server.status == 'offline', 
+                                                                suspended: server.status == 'suspended',
+                                                                loading: ['starting', 'stopping'].includes(server.status)
+                                                            }"></span>
+                                                        {{ server.hostname }}
+                                                    </td>
+                                                    <td>
+                                                        <span v-if="server.ip">{{ server.ip }}</span><span
+                                                            v-if="server.ip && server.ip6"> / </span><span
+                                                            v-if="server.ip6">{{server.ip6}}</span>
+                                                    </td>
+                                                    <td>
+                                                        {{ server.nextPayment | formatDate }}
+                                                    </td>
+                                                    <td>
+                                                        {{ server.createdAt | formatDate }}
+                                                    </td>
+                                                    <td>
+                                                        {{ server.priceFormatted }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <div v-else>
+                                            <p>{ :m_no_servers }</p>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-center">
+                                        <spinner></spinner>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div :class="mod.classes" class="" v-for="(mod, k) in mods" :data-id="`widget-${mod.component}`">
+                        <component :is="mod.component">
+                            <template v-slot:order>
+                                <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                    <i class="mdi mdi-reorder-horizontal item-reorder" style="cursor:grab"></i>
+                                </div>
+                            </template>
+                        </component>
+                    </div>
+                    <div class="row" data-id="widget-tickets">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div v-if="editMode" style="position: absolute; top:0; right: 5px;">
+                                        <i class="mdi mdi-reorder-horizontal item-reorder" style="cursor:grab"></i>
+                                    </div>
+                                    <h5 class="card-title mb-4" style="text-transform: none;">{ :m_tickets }</h5>
+                                    <div class="fluid-container" v-if="!ticketsLoading">
+                                        <div v-if="tickets.length > 0">
+
+                                            <div v-for="ticket in tickets" :key="ticket.id"
+                                                class="row ticket-card mt-3 pb-2 border-bottom pb-3 mb-3">
+                                                <div class="col-md-1">
+                                                    <img class="img-sm rounded-circle mb-4 mb-md-0"
+                                                        :src="ticket.assigned.profilePicture" alt="profile image">
+                                                </div>
+                                                <div class="ticket-details col-md-9">
+                                                    <div class="d-flex">
+                                                        <p class="font-weight-semibold mr-2 mb-0 no-wrap">
+                                                            {{ticket.assigned.name}}:
+                                                        </p>
+                                                        <p class="text-primary mr-1 mb-0">
+                                                            [#{{ticket.id}}]</p>
+                                                        <p class="mb-0 ellipsis">{{ticket.title}}
+                                                        </p>
+                                                    </div>
+                                                    <p class="ellipsis mb-2">{{ticket.message}}
+                                                    </p>
+                                                    <div class="row d-md-flex d-none">
+                                                        <div class="col-4 d-flex">
+                                                            <small class="mb-0 mr-2 text-muted text-muted">
+                                                                { :m_tickets_last_respond }
+                                                            </small>
+                                                            <small
+                                                                class="Last-responded mr-2 mb-0 text-muted text-muted">
+                                                                {{ ticket.updatedAt }}
+                                                            </small>
+                                                        </div>
+                                                        <div class="col-4 d-flex">
+                                                            <small class="mb-0 mr-2 text-muted text-muted">
+                                                                { :m_tickets_opened }</small>
+                                                            <small
+                                                                class="Last-responded mr-2 mb-0 text-muted text-muted">
+                                                                {{ ticket.createdAt }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="ticket-actions col-md-2">
+                                                    <div class="btn-group">
+                                                        <a type="button" class="btn btn-success btn-sm text-white"
+                                                            :href="`{ :app_url }support/${ticket.id}`">
+                                                            { :m_tickets_show_more }
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-else>
+                                            <p>{ :m_no_tickets }</p>
+                                        </div>
+                                    </div>
+                                    <div v-else class="col-12 text-center">
+                                        <spinner></spinner>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    { js vendors/simplemde/simplemde.js }
+    <div id="placeholderEditor" style="display: none;">
+        <textarea style="display: none;" name="a" id="" cols="30" rows="10"></textarea>
+    </div>
+
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import '{ :app_url }js/components/filters.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import Spinner from '{ :app_url }js/components/spinner.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        const mods = JSON.parse('{ :vueModules }');
+        const mo = {};
+
+        await Promise.all(mods.map(async e => {
+            mo[e.component] = (await import(e.handler))[e.name]
+        }));
+
+        var app = new Vue({
+            components: {
+                ...mo,
+                Modal,
+                Spinner
+            },
+            el: '#app',
+            data: {
+                dashboardMeta: false,
+                serversLoading: true,
+                servers: false,
+                ticketsLoading: true,
+                tickets: [],
+                newsLoading: true,
+                news: null,
+                editMode: false,
+                mods,
+            },
+            created: async function () {
+                await Promise.all([
+                    this.loadServers(),
+                    this.loadTickets(),
+                    this.loadNews()
+                ])
+            },
+            mounted: async function () {
+                await this.loadDashboardMeta();
+                Sortable.create(document.getElementById('items'), {
+                    group: 'sort-order',
+                    animation: 150,
+                    handle: ".widget-reorder",
+                    ghostClass: "sortable-ghost",
+                    filter: ".ignore-widgets",
+                    store: {
+                        set: (sortable) => {
+                            var order = sortable.toArray();
+                            this.dashboardMeta.sort.items = order;
+                        },
+                        get: () => {
+                            return this.dashboardMeta.sort.items;
+                        }
+                    }
+                });
+
+                Sortable.create(document.getElementById('app'), {
+                    group: 'sort-order2',
+                    animation: 150,
+                    handle: ".item-reorder",
+                    ghostClass: "sortable-ghost", // Class name for the drop placeholder
+                    filter: ".ignore",
+                    store: {
+                        set: (sortable) => {
+                            var order = sortable.toArray();
+                            this.dashboardMeta.sort.widgets = order;
+                        },
+                        get: () => {
+                            return this.dashboardMeta.sort.widgets;
+                        }
+                    }
+                });
+                $("#app").show();
+            },
+            methods: {
+                loadDashboardMeta: async function () {
+                    const data = await $.get('{ :app_url }api/dashboard-meta');
+                    this.dashboardMeta = data;
+                },
+                loadServers: async function () {
+                    this.serversLoading = true;
+                    const servers = await $.get('{ :app_url }api/servers');
+                    this.servers = servers;
+                    this.serversLoading = false;
+                },
+                loadTickets: async function () {
+                    this.ticketsLoading = true;
+                    const tickets = await $.get('{ :app_url }api/tickets');
+                    this.tickets = tickets;
+                    this.ticketsLoading = false;
+                },
+                loadNews: async function () {
+                    this.newsLoading = true;
+                    const news = await $.get('{ :app_url }api/news/get-latest');
+                    if (news.length > 0) this.news = news[0];
+                    this.newsLoading = false;
+                },
+                gotoServer: function (id) {
+                    window.location = `{ :app_url }server/${id}`;
+                },
+                toggleEditModus: async function () {
+                    if (this.editMode) {
+                        // save
+                        const prom = $.post(`${app_url}api/admin/save-dashboard`, {
+                            order: this.dashboardMeta.sort.items,
+                            orderWidgets: this.dashboardMeta.sort.widgets
+                        });
+                        toastr.promise(prom, '{ :m_loading }', '{ :m_done }', "{ :m_error }");
+                    }
+                    this.editMode = !this.editMode;
+                }
+            },
+            computed: {
+                newsContent: function () {
+                    if (!this.news) return "";
+                    const simplemde = new SimpleMDE(null);
+                    return simplemde.markdown(this.news.content)
+                }
+            },
+            beforeCreate: function () {
+                this.$options.computed = {
+                    ...this.$options.computed,
+                    ...window.ACL.ACLMixin()
+                }
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

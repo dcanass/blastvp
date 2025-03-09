@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <style>
+        .sortable-ghost {
+            opacity: .5;
+            background: #C8EBFB;
+        }
+
+        .sortable-ghost .card {
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app" style="display: none">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <div class="row justify-content-start">
+                                        <div class="col-12 col-sm-10">
+                                            <p class="card-description">
+                                                { :m_description }
+                                            </p>
+                                        </div>
+                                        <div class="col-auto col-sm-2" style="white-space: nowrap;">
+                                            <button class="btn btn-primary float-right" @click="openCreateModal"><i
+                                                    class="mdi mdi-plus"></i>{ :m_create }</button>
+                                        </div>
+                                    </div>
+                                    <modal :show="showConfirm" @hide="showConfirm = false" body="{ :m_are_you_sure }"
+                                        title="{ :m_warning }" close-text="{ :m_close_btn }"
+                                        @click="deletePackage(package.id)">
+                                        <template #footer>
+                                            <button type="button" class="btn btn-danger" id="saveBtn"
+                                                @click="deletePackage">
+                                                { :m_yes_delete }</button>
+                                        </template>
+                                    </modal>
+                                    <div class="row pt-3" id="items">
+                                        <div class="col-xl-3 col-lg-4 col-md-6 col-12 my-2"
+                                            v-for="(package, i) in packages" :key="i" :data-id="package.id">
+                                            <div class="card h-100">
+                                                <div class="card-body h-100 p-0 border rounded">
+                                                    <span class="position-absolute" style="top: 5px; right: 10px">
+                                                        <i class="mdi mdi-cursor-move" style="cursor:grab"></i>
+                                                        <i class="mdi mdi-pencil" style="cursor: pointer"
+                                                            @click="openEdit(i)"></i>
+                                                        <i class="mdi mdi-delete" style="cursor: pointer"
+                                                            @click="prepareDelete(package.id);"></i>
+                                                    </span>
+                                                    <h3 class=" mt-4 text-center"><u>{{ package.name }}</u></h3>
+                                                    <h4 class="mt-2 text-center">{ :m_price }:
+                                                        {{ package.priceFormatted }}/{ :m_monthly }
+                                                    </h4>
+                                                    <hr>
+                                                    <dl class="p-3 mb-4">
+                                                        <dt>{ :m_cpu }</dt>
+                                                        <dd>{{ package.cpu }} { :m_cores }</dd>
+                                                        <dt>{ :m_ram }</dt>
+                                                        <dd>{{ package.ram / 1024 }} GB</dd>
+                                                        <dt>{ :m_disk }</dt>
+                                                        <dd>{{ package.disk }} GB</dd>
+                                                        <dt>{{ types[package.type] }}</dt>
+                                                        <dd>{{ getTemplateNameForId(package.templateId) ?? '-' }}</dd>
+                                                        <div v-for="(v, i) in JSON.parse(package.meta)">
+                                                            <dt>{{ v.title }}</dt>
+                                                            <dd>{{ v.value }}</dd>
+                                                        </div>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <modal :title="modalTitle" :show="editObj !== null" @hide="editObj = null"
+                        close-text="{ :m_close }">
+                        <template #body v-if="editObj">
+                            <div class="form-group">
+                                <label class="form-label" for="name">{ :m_create_name }</label>
+                                <input type="text" v-model="editObj.name" id="name" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="cpu" class="form-label">{ :m_cpu }</label>
+                                <select name="" id="cpu" v-model="editObj.cpu" class="form-control">
+                                    { :cpu_html }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="createEmail">{ :m_ram }</label>
+                                <select name="" id="ram" v-model="editObj.ram" class="form-control">
+                                    { :ram_html }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="createPassword" class="form-label">{ :m_disk }</label>
+                                <select name="" id="disk" v-model="editObj.disk" class="form-control">
+                                    { :disk_html }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="name">{ :m_price }</label>
+                                <input type="number" v-model=editObj.price id="price" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="" class="form-label">{ :m_type }</label>
+                                <select name="" id="" v-model="editObj.type" class="form-control">
+                                    <option v-for="(v, k) of types" :value="k">{{v}}</option>
+                                </select>
+                            </div>
+                            <div class="form-group" v-if="editObj.type == 2">
+                                <label for="" class="form-label">{ :m_template }</label>
+                                <select name="" v-model="editObj.templateId" id="" class="form-control">
+                                    <option :value="t.id" v-for="(t, index) in templates">
+                                        {{ t.displayName }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="meta">
+                                <label for="createPassword" class="form-label">{ :m_create_meta }</label>
+                                <div class="form-group mt-2 position-relative" v-for="(meta, i) of meta" :key="i">
+                                    <i class="mdi mdi-close-circle position-absolute"
+                                        style="right: -8px; top: -12px; cursor: pointer" @click="removeMeta(i)"></i>
+                                    <input type="text" v-model="meta.title" id="" placeholder="Title"
+                                        class="meta_input form-control">
+                                    <input type="text" v-model="meta.value" id="" placeholder="Inhalt"
+                                        class="meta_value form-control">
+                                </div>
+                                <small @click="meta.push({ 'title': '', 'value': '' })" class="text-primary"
+                                    style="cursor: pointer;"><i class="mdi mdi-plus"></i> <u>1
+                                        { :m_meta_more }</u></small>
+
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-success" id="saveBtn" @click="savePackage()">
+                                {{ buttonTitle }}</button>
+                        </template>
+                    </modal>
+                    <modal title="{ :m_warning }" :show="hasPriceDifference" close-text="{ :m_close }" :stacked="true"
+                        :hide-default-cancel="true">
+                        <template #body>
+                            <p>{ :m_apply_price_change }</p>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-primary" id="saveBtn" @click="savePackage(false)">
+                                { :m_no }</button> <button type="button" class="btn btn-primary" id="saveBtn"
+                                @click="savePackage(true)">
+                                { :m_yes }</button>
+                        </template>
+                    </modal>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script type="module">
+        import Modal from '{ :app_url }js/components/modal.js'
+
+        var app = new Vue({
+            components: {
+                Modal
+            },
+            el: '#app',
+            data: {
+                showConfirm: false,
+                packages: [],
+                editObj: null,
+                editOgPrice: null,
+                modalTitle: "",
+                buttonTitle: "",
+                meta: [],
+                deleteId: 0,
+                templates: [],
+                types: {
+                    1: '{ :m_type_flexible }',
+                    2: '{ :m_type_fixed }'
+                },
+                hasPriceDifference: false
+            },
+            created: async function () {
+                await this.load();
+            },
+            methods: {
+                load: async function () {
+                    $("#app").show();
+                    $.get('{ :app_url }api/host/load-isos', (data) => {
+                        this.templates = data
+                    })
+                    $.get('{ :app_url }api/packages/get', (result) => {
+                        this.packages = result;
+                        var el = document.getElementById('items');
+                        let sortable = Sortable.create(el, {
+                            group: 'sort-order',
+                            animation: 150,
+                            handle: ".mdi-cursor-move",
+                            ghostClass: "sortable-ghost", // Class name for the drop placeholder
+                            store: {
+                                set: () => {
+                                    var order = sortable.toArray();
+                                    const res = {};
+                                    for (let i = 0; i < order.length; i++) {
+                                        res[order[i]] = i;
+                                    }
+                                    $.post('{ :app_url }api/package/save-order', {
+                                        order: res
+                                    }, (data) => {
+                                        toastr.success('{ :m_saved }')
+                                    })
+                                }
+                            }
+                        });
+                    })
+                },
+                openEdit: async function (i) {
+                    this.meta = JSON.parse(this.packages[i].meta);
+                    this.modalTitle = "{ :m_edit_title }"
+                    this.buttonTitle = "{ :m_save }"
+                    this.editOgPrice = this.packages[i].price;
+                    this.editObj = this.packages[i];
+                },
+                savePackage: async function (applyPriceChange = null) {
+                    if (applyPriceChange === null && this.editObj.id && this.editObj.price !== this.editOgPrice) {
+                        this.hasPriceDifference = true;
+                        return;
+                    }
+                    $.post("{ :app_url }api/package/save", {
+                        ...this.editObj,
+                        applyPriceChange,
+                        meta: JSON.stringify(this.meta.filter(e => e.value != "")),
+                    }, (result) => {
+                        if (this.editObj.id) {
+                            // update in existing packages
+                            const index = this.packages.findIndex(e => e.id === this.editObj.id);
+                            this.packages[index].meta = JSON.stringify(this.meta);
+                        } else {
+                            this.load()
+                        }
+                        this.hasPriceDifference = false;
+                        this.editObj = null;
+                        toastr.success("{ :m_saved }");
+                    })
+                },
+                prepareDelete: async function (id) {
+                    this.showConfirm = true;
+                    this.deleteId = id;
+                },
+                deletePackage: async function () {
+                    this.showConfirm = false;
+                    await $.get(`{ :app_url }api/packages/delete/${this.deleteId}`, (data) => {
+                        const index = this.packages.findIndex(e => e.id === this.deleteId);
+                        this.packages.splice(index, 1);
+                    });
+                    this.load();
+                },
+                openCreateModal: async function () {
+                    this.editObj = {
+                        name: "",
+                        cpu: 0,
+                        ram: 0,
+                        disk: 0,
+                        price: "",
+                    }
+                    this.meta = [{
+                        title: "",
+                        value: ""
+                    }];
+                    this.modalTitle = "{ :m_create_title }";
+                    this.buttonTitle = "{ :m_create }";
+                },
+                removeMeta: function (index) {
+                    this.meta.splice(index, 1)
+                },
+                openModal: async function (data) {
+                    $.get(`{ :app_url }api/admin/load-template-information/${data.vmid}`, (result) => {
+                        const config = result.config
+                        if (data.displayName == null) {
+                            data.displayName = config.name.replace(/-/g, ' ')
+                        }
+                        if (data.defaultDrive == null) {
+                            data.defaultDrive = "scsi0";
+                        }
+                        if (data.defaultUser == null) {
+                            data.defaultUser = "root";
+                        }
+
+                        // parse available drives from config keys
+                        const drives = Object.keys(config).filter((e) =>
+                            /(scsi|ide|sata|virtio)(\d+)/.test(e)).map(e => ({
+                                value: e
+                            }));
+
+                        this.editObj = {
+                            ...data,
+                            ...config,
+                            driveOptions: drives,
+                        };
+                        console.log(this.editObj);
+                    })
+                },
+                getTemplateNameForId: function (id) {
+                    if (!id) return;
+                    const find = this.templates.find(e => e.id == id);
+                    if (!find) return;
+                    return find.displayName;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

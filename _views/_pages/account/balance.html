@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>{ :PAGE_TITLE } - { :m_title }</title>
+  <!-- plugins:css -->
+  { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+  { css vendors/css/vendor.bundle.base.css }
+  { css vendors/css/vendor.bundle.addons.css }
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <?php if ($STYLE == "dark"): ?>
+  { css css/dark.css }
+  { else }
+  { css css/style.css }
+  { endif }
+  { js vendors/js/vendor.bundle.base.js }
+  <!-- endinject -->
+  <link rel="shortcut icon" href="{ :app_url }/images/favicon.png" />
+
+  <style>
+    .disable-text-select small {
+      user-select: none;
+    }
+
+    .selected-method {
+      outline: 2px solid var(--primary)
+    }
+
+    .payment-method {
+      cursor: pointer;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    { include("_views/partials/_navbar.html") }
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <!-- partial:partials/_sidebar.html -->
+      { include("_views/partials/_sidebar.html") }
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper" id="app">
+          <div class="row">
+            <div class="col-md-4 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">{ :m_title }</h4>
+                  <div class="row">
+                    <div class="col-12">
+                      <h4>
+                        { :m_your_balance }: { :balance }
+                      </h4>
+                    </div>
+                    <div class="col-12 mt-4">
+                      <p>{ :m_voucher_info }</p>
+                      <div class="row col-12 p-0 m-0">
+                        <div class="form-group col-12 p-0 ">
+                          <div class="input-group">
+                            <input v-model="voucher" type="text" class="form-control" aria-label="" />
+                          </div>
+                        </div>
+                        <div class="form-group col-12 p-0 d-flex justify-content-end">
+                          <button @click="voucherSubmit()" class="btn btn-primary mr-0 ml-auto">
+                            <i class="mdi mdi-ticket"></i> { :m_voucher_add }
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-8 grid-margin">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">{ :m_prediction }</h4>
+                  <!-- chart -->
+                  <line-chart v-if="chartData" chart-id="futureChart" :chart-data="loadChart().chart"
+                    :options="loadChart().options" style="height: 200px;">
+                  </line-chart>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 grid-margin">
+              <div class="card" style="position: relative">
+                { if :accountSetupNeeded }
+                <div class="row col-12 grid-margin m-0 p-0" style="
+                      position: absolute;
+                      text-align: center;
+                      backdrop-filter: blur(5px) grayscale(0.7) brightness(0.4);
+                      z-index: 200;
+                      height: 100%;
+                    ">
+                  <div class="rounded-0 border-0 my-auto w-100 text-white">
+                    <h3>{ :m_account_setup_finish_title }</h3>
+                    <p>
+                      { :m_account_setup_finish }
+                      <a href="{ :app_url }settings"> { :m_settings }</a>.
+                    </p>
+                  </div>
+                </div>
+                { endif }
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <p class="font-weight-bold">
+                        { :m_desc_input }
+                      </p>
+                    </div>
+                    <div class="col-md-5">
+                      <p class="font-weight-bold">
+                        { :m_select_method }
+                      </p>
+                    </div>
+                    <div class="col-md-4">
+                      <p class="font-weight-bold">
+                        { :m_summary }
+                      </p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-3 form-group">
+                      <div class="input-group">
+                        <div class="input-group-prepend">
+                          <span class="input-group-text">{ :currency_symbol }</span>
+                        </div>
+                        <input v-model="input" type="number" step="0.01" min="0" id="balance" class="form-control"
+                          aria-label="" />
+                      </div>
+                      <div class="disable-text-select">
+                        <small>{ :m_suggestion }:</small>
+                        <small class="text-primary" @click="updateInput(-50)" style="cursor: pointer;"><i
+                            class="mdi mdi-minus"></i>50</small>
+                        <small class="text-primary" @click="updateInput(-25)" style="cursor: pointer;"><i
+                            class="mdi mdi-minus"></i>25</small>
+                        <small class="text-primary" @click="updateInput(-10)" style="cursor: pointer;"><i
+                            class="mdi mdi-minus"></i>10</small>
+                        <small class="text-primary" @click="updateInput(10)" style="cursor: pointer;"><i
+                            class="mdi mdi-plus"></i>10</small>
+                        <small class="text-primary" @click="updateInput(25)" style="cursor: pointer;"><i
+                            class="mdi mdi-plus"></i>25</small>
+                        <small class="text-primary" @click="updateInput(50)" style="cursor: pointer;"><i
+                            class="mdi mdi-plus"></i>50</small>
+                      </div>
+                    </div>
+                    <div class="col-md-5 form-group row p-0 m-0 ">
+                      { if :paypal_enabled }
+                      <div @click="toggleMethod('paypal', 'paypal')"
+                        class="w-100 px-4 py-2 border rounded payment-method mt-0" :class="{
+                        'selected-method': selectedMethod == 'paypal'
+                      }">
+                        PayPal
+                      </div>
+                      { endif } { if :stripe_enabled }
+                      <div @click="toggleMethod('card', 'stripe')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == 'card'
+                      }"> { :m_pay_card }
+                      </div>
+                      { endif }
+                      { if :mollieEnabled }
+                      { foreach :m in :molliePaymentMethods }
+                      <div @click="toggleMethod('{ :m }', 'mollie')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == '{ :m }'
+                      }">
+                        <?= \Objects\Formatters::getPaymentMethod("mollie", $m) ?>
+                      </div>
+                      { endforeach } { endif }
+                      { if :duitkuEnabled }
+                      <div @click="toggleMethod('duitku', 'duitku')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == 'duitku'
+                        }">
+                        { :m_duitku }
+                      </div>
+                      { endif }
+                      { if :coinbaseEnabled }
+                      <div @click="toggleMethod('coinbase', 'coinbase')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == 'coinbase'
+                      }">
+                        { :m_crypto }
+                      </div>
+                      { endif }
+                      { if :paysafecardEnabled }
+                      <div @click="toggleMethod('paysafecard', 'paysafecard')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == 'paysafecard'
+                      }">
+                        { :m_paysafecard }
+                      </div>
+                      { endif }
+                      { if :goCardlessEnabled }
+                      <div @click="toggleMethod('gocardless', 'gocardless')"
+                        class="w-100 px-4 py-2  border rounded payment-method" :class="{
+                        'selected-method': selectedMethod == 'gocardless'
+                      }">
+                        { :m_gocardless }
+                      </div>
+                      { endif }
+                    </div>
+                    <div class="col-md-4">
+                      <div class="row">
+                        <div class="col-6 text-right">
+                          <p>
+                            { :m_subtotal }
+                          </p>
+                          { if :show_vat }
+                          <p>
+                            { :m_tax }
+                          </p>
+                          { endif }
+                        </div>
+                        <div class="col-6 text-right">
+                          <p class="font-weight-bold">
+                            {{ input | formatBalance }}
+                          </p>
+                          { if :show_vat }
+                          <p class="font-weight-bold">
+                            {{ calcVat | formatBalance }}
+                          </p>
+                          { endif }
+                        </div>
+                      </div>
+                      <hr>
+                      <div class="row">
+                        <div class="col-6 text-right">
+                          <p>
+                            { :m_total }
+                          </p>
+                        </div>
+                        <div class="col-6 text-right">
+                          <p class="font-weight-bold">
+                            {{input | formatBalance }}
+                          </p>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-12 text-right">
+                          <button class="btn btn-primary" @click="startTransaction()">{ :m_pay_now }</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+        <!-- partial:partials/_footer.html -->
+        { include("_views/partials/_footer.html") }
+        <!-- partial -->
+      </div>
+      <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="col-md-12 col-12" id="thanks">
+          <div class="row m-0 p-2">
+            <h1 class="text-grey font-weight-bold text-center w-100 pt-3">
+              { :m_success }
+            </h1>
+          </div>
+          <div class="row m-0 p-0">
+            <!-- checkmark -->
+            <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+              <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+              <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+            </svg>
+          </div>
+          <div class="row m-0 mt-3 p-2">
+            <p class="w-100 text-grey text-center font-weight-bold" id="successMessage">
+              { :m_success_message }
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="failedModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="col-md-12 col-12" id="thanks">
+          <div class="row m-0 p-2">
+            <h1 class="text-grey font-weight-bold text-center w-100 pt-3">
+              { :m_error }
+            </h1>
+          </div>
+          <div class="row m-0 p-0">
+            <!-- failed -->
+            <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+              <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+              <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                stroke-miterlimit="10"></line>
+              <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5" stroke-linecap="round"
+                stroke-miterlimit="10"></line>
+            </svg>
+          </div>
+          <div class="row m-0 mt-3 p-2">
+            <p class="w-100 text-grey text-center font-weight-bold" id="failedAddModal">
+              { :m_error_message }
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- container-scroller -->
+
+  <!-- plugins:js -->
+  { js vendors/js/vendor.bundle.addons.js }
+  <!-- endinject -->
+  <!-- Plugin js for this page-->
+  <!-- End plugin js for this page-->
+  <!-- inject:js -->
+  { js js/off-canvas.js }
+  { js js/misc.js }
+
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <script sr="{ :app_url }_views/js/promise-polyfill.js"></script>
+  <!-- <script src="https://www.paypalobjects.com/api/checkout.js"></script> -->
+  <script src="https://www.paypal.com/sdk/js?client-id={ :pp_public }"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <script type="module">
+    const balance = Number("{ :balanceRaw }");
+
+
+    Vue.component('line-chart', {
+      mixins: [VueChartJs.mixins.reactiveProp],
+      extends: VueChartJs.Line,
+      props: ['options'],
+      mounted() {
+        this.renderChart(this.chartData, this.options)
+      },
+    })
+
+    Vue.filter('formatBalance', (e) => {
+      const CURRENCY_POSITION = "{ :format }";
+      const CURRENCY = "{ :currency_symbol }";
+      return CURRENCY_POSITION === 'BEHIND' ? `${e} ${CURRENCY}` : `${CURRENCY} ${e}`
+    })
+
+    var app = new Vue({
+      components: {},
+      el: "#app",
+      data: {
+        chart: false,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          elements: {
+            point: {
+              radius: 0
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                tooltipFormat: 'DD.MM.YYYY',
+                unit: 'day',
+                minUnit: 'day',
+              },
+              ticks: {
+                source: "auto",
+                maxTicksLimit: 10,
+                maxRotation: 0,
+                minRotation: 0
+              }
+            }
+          },
+          hover: {
+            mode: 'index',
+            intersect: false
+          },
+        },
+        chartData: false,
+        voucher: "",
+        input: 0,
+        selectedMethod: "",
+        selectedProvider: ""
+      },
+      mounted: async function () {
+        let data = await $.get('{ :app_url }api/balance-prediction');
+        data.unshift({
+          timestamp: +((+Date.now()) / 1000).toFixed(0),
+          price: 0
+        })
+        let sorted = data.sort((a, b) => a.timestamp - b.timestamp);
+        let tempBalance = balance;
+
+        sorted = sorted.map(ele => {
+          tempBalance = tempBalance - ele.price
+          return {
+            timestamp: ele.timestamp,
+            balance: tempBalance,
+            price: ele.price,
+            label: ele.label
+          }
+        })
+        this.chartData = sorted;
+      },
+      methods: {
+        loadChart: function () {
+          const mapped = this.chartData.map(ele => ele.balance)
+          return {
+            chart: {
+              labels: this.chartData.map(ele => ele.timestamp * 1000),
+              datasets: [
+                {
+                  lineTension: 0,
+                  label: '{ :m_balance }',
+                  data: this.chartData.map(ele => ele.balance.toFixed(2)),
+                  stepped: true,
+                  segment: {
+                    borderColor: (ctx) => {
+                      return Number(ctx.p0.parsed.y) <= 0
+                        ? "#ff6666"
+                        : 'green';
+                    },
+                  },
+                }
+              ]
+            },
+            options: {
+              ...this.options,
+              scales: {
+                ...this.options.scales,
+                y: {
+                  suggestedMin: Math.min(mapped) - 5 > 0 ? 0 : Math.min(mapped) - 5,
+                  suggestedMax: Math.max(mapped) + 5,
+                },
+              },
+              plugins: {
+                tooltip: {
+                  displayColors: false,
+                  mode: 'index',
+                  intersect: false,
+                  callbacks: {
+                    label: (context) => {
+                      let label = context.dataset.label || '';
+
+                      if (label) {
+                        label += ': ';
+                      }
+                      if (context.parsed.y !== null) {
+                        label += this.$options.filters.formatBalance(context.parsed.y);
+                      }
+                      return label;
+                    },
+                    footer: (context) => {
+                      const data = this.chartData[context[0].dataIndex];
+                      if (data.label)
+                        return `${data.label} (${this.$options.filters.formatBalance(data.price * -1)})`
+                    }
+                  }
+                },
+                legend: {
+                  display: false
+                }
+              }
+            }
+          };
+        },
+        voucherSubmit: async function () {
+          const data = await $.post("{ :app_url }api/vouchers/validate-balance", {
+            voucher: this.voucher,
+          });
+          if (data.error) {
+            $("#failedModal").modal("show");
+            $("#failedAddModal").html(data.message);
+          } else {
+            $("#successModal").modal("show");
+            $("#successMessage").html(data.message);
+          }
+        },
+        updateInput: function (a) {
+          if (this.input + a > 0) {
+            this.input += a;
+            return;
+          }
+          this.input = 0;
+        },
+        toggleMethod: function (m, met) {
+          if (this.selectedMethod == m) {
+            this.selectedMethod = "";
+            return;
+          }
+          this.selectedProvider = met;
+          this.selectedMethod = m;
+        },
+        startTransaction: async function () {
+          const result = await $.post(`${app_url}api/create-payment`, {
+            method: this.selectedProvider,
+            amount: this.input,
+            submethod: this.selectedMethod
+          });
+
+          if (result.url)
+            window.location = result.url;
+        },
+      },
+      computed: {
+        calcVat: function () {
+          const vat = Number("{ :vat }");
+          return (this.input / 100 * vat).toFixed(2);
+        }
+      },
+      watch: {
+        input: function () {
+          if (this.input <= 50) this.input = Math.abs(this.input)
+        }
+      }
+    })
+  </script>
+
+  { if :success }
+  <script>
+    $(() => {
+      // check if is paypal
+      // paypal has get parameter paymentId, token and PayerID set
+      const paymentId = findGetParameter('paymentId');
+      const token = findGetParameter('token')
+      const payerId = findGetParameter('PayerID')
+      if (paymentId && token && payerId) {
+        $.post("{ :app_url }api/payment-webhook", {
+          method: 'paypal',
+          paymentID: paymentId,
+          payerID: payerId
+        }, (data) => {
+          $("#successModal").modal("show");
+        })
+      } else {
+        $("#successModal").modal("show");
+      }
+    });
+  </script>
+  { endif } { if :abort }
+  <script>
+    $(() => {
+      $("#failedModal").modal("show");
+    });
+  </script>
+  { endif }
+
+  <script>
+    function findGetParameter(parameterName) {
+      var result = null,
+        tmp = [];
+      location.search
+        .substr(1)
+        .split("&")
+        .forEach(function (item) {
+          tmp = item.split("=");
+          if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+        });
+      return result;
+    }
+  </script>
+</body>
+
+</html>

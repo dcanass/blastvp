@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        /* WYSIWYG Editor */
+        .editor {
+            width: 100%;
+            min-height: 18rem;
+            box-shadow: 0 0 4px 1px rgba(0, 0, 0, 0.3);
+            border-top: 6px solid #4a4a4a;
+            border-radius: 3px;
+            margin: 2rem;
+            resize: vertical;
+            overflow: auto;
+            display: flex;
+            flex-flow: column;
+        }
+
+        .editor .toolbar {
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            flex: 0 1 auto;
+        }
+
+        .editor .toolbar .line {
+            display: flex;
+            border-bottom: 1px solid #e2e2e2;
+        }
+
+        .editor .toolbar .line:last-child {
+            border-bottom: none;
+        }
+
+        .editor .toolbar .line .box {
+            display: flex;
+            border-left: 1px solid #e2e2e2;
+        }
+
+        .editor .toolbar .line .box .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: 0.2s ease all;
+        }
+
+        .editor .toolbar .line .box .btn:hover,
+        .editor .toolbar .line .box .btn.active {
+            background-color: #e1e1e1;
+            cursor: pointer;
+        }
+
+        .editor .toolbar .line .box .btn.icon img {
+            width: 15px;
+            /* padding: 10px; */
+        }
+
+        .editor .toolbar .line .box .btn.icon.smaller img {
+            width: 12px;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu {
+            width: 20px;
+            padding: 0 10px;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            position: absolute;
+            background-image: url(https://cdn-icons-png.flaticon.com/512/25/25243.png);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            right: 4px;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu .submenu {
+            display: none;
+            position: absolute;
+            top: 36px;
+            left: -1px;
+            z-index: 10;
+            background-color: #fff;
+            border: 1px solid #b5b5b5;
+            border-top: none;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu .submenu .btn {
+            width: 39px;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu .submenu:hover {
+            display: block;
+        }
+
+        .editor .toolbar .line .box .btn.has-submenu:hover .submenu {
+            display: block;
+        }
+
+        .editor .content-area {
+            padding: 15px 12px;
+            line-height: 1.5;
+            flex: 1 1 auto;
+        }
+
+        .editor .content-area .visuell-view {
+            outline: none;
+            height: 100%;
+        }
+
+        .editor .content-area .visuell-view p {
+            margin: 12px 0;
+        }
+
+        .editor .content-area .html-view {
+            outline: none;
+            display: none;
+            width: 100%;
+            border: none;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <p class="card-description">
+                                        { :m_description }
+                                    </p>
+                                    <br>
+                                    <div class="row col-12">
+                                        <div class="editor">
+                                            <div class="toolbar">
+                                                <div class="line">
+                                                    <div class="box">
+                                                        <span class="btn icon smaller" data-action="bold" title="Bold">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25432.png">
+                                                        </span>
+                                                        <span class="btn icon smaller" data-action="italic"
+                                                            title="Italic">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25392.png">
+                                                        </span>
+                                                        <span class="btn icon smaller" data-action="underline"
+                                                            title="Underline">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25433.png">
+                                                        </span>
+                                                        <span class="btn icon smaller" data-action="strikeThrough"
+                                                            title="Strike through">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25626.png">
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="box">
+                                                        <span class="btn icon has-submenu">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25351.png">
+                                                            <div class="submenu">
+                                                                <span class="btn icon" data-action="justifyLeft"
+                                                                    title="Justify left">
+                                                                    <img
+                                                                        src="https://cdn-icons-png.flaticon.com/512/25/25351.png">
+                                                                </span>
+                                                                <span class="btn icon" data-action="justifyCenter"
+                                                                    title="Justify center">
+                                                                    <img
+                                                                        src="https://cdn-icons-png.flaticon.com/512/25/25440.png">
+                                                                </span>
+                                                                <span class="btn icon" data-action="justifyRight"
+                                                                    title="Justify right">
+                                                                    <img
+                                                                        src="https://cdn-icons-png.flaticon.com/512/25/25288.png">
+                                                                </span>
+                                                                <span class="btn icon" data-action="formatBlock"
+                                                                    title="Justify block">
+                                                                    <img
+                                                                        src="https://cdn-icons-png.flaticon.com/512/25/25181.png">
+                                                                </span>
+                                                            </div>
+                                                        </span>
+                                                        <span class="btn icon" data-action="insertOrderedList"
+                                                            title="Insert ordered list">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25242.png">
+                                                        </span>
+                                                        <span class="btn icon" data-action="insertUnorderedList"
+                                                            title="Insert unordered list">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25648.png">
+                                                        </span>
+                                                        <span class="btn icon" data-action="outdent" title="Outdent">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25410.png">
+                                                        </span>
+                                                        <span class="btn icon" data-action="indent" title="Indent">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25233.png">
+                                                        </span>
+
+                                                    </div>
+                                                    <div class="box">
+                                                        <span class="btn icon" data-action="insertHorizontalRule"
+                                                            title="Insert horizontal rule">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25232.png">
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="line">
+
+                                                    <div class="box">
+                                                        <span class="btn icon smaller" data-action="undo" title="Undo">
+                                                            <img src="https://cdn-icons-png.flaticon.com/512/25/25249.png"
+                                                                style="color: black !important;">
+                                                        </span>
+                                                        <span class="btn icon" data-action="removeFormat"
+                                                            title="Remove format">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25454.png">
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="box">
+                                                        <span class="btn icon smaller" data-action="createLink"
+                                                            title="Insert Link">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25385.png">
+                                                        </span>
+                                                        <span class="btn icon smaller" data-action="unlink"
+                                                            title="Unlink">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25341.png">
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="box">
+                                                        <span class="btn icon" data-action="code"
+                                                            title="Show HTML-Code">
+                                                            <img
+                                                                src="https://cdn-icons-png.flaticon.com/512/25/25185.png">
+                                                        </span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                            <div class="content-area">
+                                                <div class="visuell-view " contenteditable>
+                                                    { :content }
+                                                </div>
+                                                <textarea class="html-view"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal">
+                                            <div class="modal-bg"></div>
+                                            <div class="modal-wrapper">
+                                                <div class="modal-content" id="modalCreateLink">
+                                                    <h3>Insert Link</h3>
+                                                    <input type="text" id="linkValue"
+                                                        placeholder="Link (example: https://domain.de/)">
+                                                    <div class="row">
+                                                        <input type="checkbox" id="new-tab">
+                                                        <label for="new-tab">Open in new Tab?</label>
+                                                    </div>
+                                                    <button class="done">Done</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row col-12 p-0 m-0">
+                                        <div class="col-12">
+                                            <button class="btn btn-success float-right" onclick="saveTemplate()">
+                                                { :m_save }</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <script>
+        const editor = document.getElementsByClassName('editor')[0];
+        const toolbar = editor.getElementsByClassName('toolbar')[0];
+        const buttons = toolbar.querySelectorAll('.btn:not(.has-submenu)');
+
+        for (let i = 0; i < buttons.length; i++) {
+            let button = buttons[i];
+
+            button.addEventListener('click', function (e) {
+                let action = this.dataset.action;
+
+                switch (action) {
+                    case 'code':
+                        execCodeAction(this, editor);
+                        break;
+                    case 'createLink':
+                        execLinkAction();
+                        break;
+                    default:
+                        execDefaultAction(action);
+                }
+
+            });
+        }
+
+        function execCodeAction(button, editor) {
+            const contentArea = editor.getElementsByClassName('content-area')[0];
+            const visuellView = contentArea.getElementsByClassName('visuell-view')[0];
+            const htmlView = contentArea.getElementsByClassName('html-view')[0];
+
+            if (button.classList.contains('active')) { // show visuell view
+                visuellView.innerHTML = htmlView.value;
+                htmlView.style.display = 'none';
+                visuellView.style.display = 'block';
+
+                button.classList.remove('active');
+            } else { // show html view
+                htmlView.innerText = visuellView.innerHTML;
+                visuellView.style.display = 'none';
+                htmlView.style.display = 'block';
+
+                button.classList.add('active');
+            }
+        }
+
+        function execLinkAction() {
+            let linkValue = prompt('Link (e.g. https://example.com/)');
+            document.execCommand('createLink', false, linkValue);
+        }
+
+        function execDefaultAction(action) {
+            document.execCommand(action, false);
+        }
+
+        function saveTemplate() {
+            $.post('{ :app_url }api/email-content/update', {
+                'html': $('.visuell-view')[0].innerHTML
+            }, (data) => {
+                console.log(data);
+                if (data.error) {
+                    toastr.error(data.message);
+                } else {
+                    toastr.success(data.message);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

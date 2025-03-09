@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title" style="text-transform: none;">
+                                <div class="row justify-content-between">
+                                    <h4>{ :m_title }</h4>
+                                    <button class="btn btn-success float-right" onclick="openModal()">
+                                        { :m_create }</button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Fingerprint</th>
+                                            <th>Hinzugef&uuml;gt am</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        { foreach :k in :keys }
+                                        <tr>
+                                            <td>{ :k.name }</td>
+                                            <td>{ :k.fingerprint }</td>
+                                            <td>
+                                                <?= \Objects\Formatters::formatDateAbsolute($k['createdAt']); ?>
+                                            </td>
+                                            <td><button class="btn btn-warning float-right"
+                                                    onclick="deleteKey('{ :k.id }')">{ :m_delete }</button></td>
+                                        </tr>
+                                        { endforeach }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <div class="modal fade" id="createSSHKeyModal" tabindex="-1" role="dialog" aria-labelledby="createSSHKeyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createSSHKeyModalLabel">{ :m_create }</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Schliessen">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="" class="col-form-label">Schl&uuml;ssel</label>
+                            <textarea name="" id="keyValue" rows="10" class="form-control"
+                                placeholder="ssh-rsa ..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="col-form-label" for="orderName">Name</label>
+                            <input type="text" class="form-control" id="keyName" placeholder="">
+                        </div>
+                        <div class="col-12">
+                            <label for="" class="col-form-label">Fingerprint</label>
+                            <input type="text" class="form-control" id="keyFingerprint" placeholder="generiert"
+                                disabled="disabled">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close }</button>
+                    <button type="button" class="btn btn-primary" onclick="create();">{ :m_create }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script>
+        const openModal = () => {
+            $("#createSSHKeyModal").modal('toggle')
+        }
+
+        $("#keyValue").on('input', (event) => {
+            const value = $("#keyValue").val();
+
+            let parts = value.split(' ');
+            if (parts.length > 2) {
+                $("#keyName").val(parts.splice(2).join(" "));
+            }
+            if (parts.length >= 2) {
+                $.post('{ :app_url }api/ssh-keys/calc-fingerprint', {
+                    key: value
+                }, (data) => {
+                    $("#keyFingerprint").val(data.result);
+                    validate();
+                });
+            }
+            validate();
+        });
+
+        const create = () => {
+            let valid = validate();
+            if (!valid) return;
+
+            const key = $("#keyValue").val().trim();
+            const name = $("#keyName").val().trim();
+            const fingerprint = $("#keyFingerprint").val().trim();
+
+            $.post('{ :app_url }ssh-keys', {
+                key,
+                name,
+                fingerprint
+            }, (data) => {
+                window.location.reload();
+            })
+        }
+
+        const validate = () => {
+            $("#keyValue").removeClass('is-invalid');
+            $("#keyName").removeClass('is-invalid');
+            $("#keyFingerprint").removeClass('is-invalid');
+
+            let valid = true;
+
+            const key = $("#keyValue").val().trim();
+            const name = $("#keyName").val().trim();
+            const fingerprint = $("#keyFingerprint").val().trim();
+
+            const keySplit = key.split(" ");
+            if (key == "" || keySplit.length < 2) {
+                $("#keyValue").addClass('is-invalid');
+                valid = false;
+            }
+            if (name == "") {
+                $("#keyName").addClass('is-invalid');
+                valid = false;
+            }
+            if (fingerprint == "") {
+                $("#keyFingerprint").addClass('is-invalid');
+                valid = false;
+            }
+            return valid;
+        }
+
+        const deleteKey = (id) => {
+            $.post("{ :app_url }ssh-keys/delete", {
+                id
+            }, (data) => {
+                window.location.reload();
+            })
+        }
+    </script>
+</body>
+
+</html>

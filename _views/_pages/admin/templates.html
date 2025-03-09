@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+    <style>
+        .sortable-ghost {
+            opacity: .5;
+            background: #C8EBFB;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app" style="display: none">
+                    <div class="card">
+                        <div class="row">
+                            <div class="col-lg-12 grid-margin stretch-card">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">{ :m_title }</h4>
+                                        <div class="card-description">
+                                            <p>{ :m_description }</p>
+                                        </div>
+                                        <div class="row">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover" v-show="templates.length > 0">
+                                                    <thead>
+                                                        <tr>
+                                                            <td>#</td>
+                                                            <td>{ :m_tbl_1 }</td>
+                                                            <td>{ :m_tbl_2 }</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="items">
+                                                        <tr v-for="t in templates" :key="t.id" :data-id="t.id">
+                                                            <td>
+                                                                <i class="mdi mdi-reorder-horizontal mr-2"
+                                                                    style="cursor:grab"></i>{{ t.vmid }}
+                                                            </td>
+                                                            <td :class="{ 'text-warning': t.orphaned }">
+                                                                <span>{{t.displayName}} <i v-if="t.orphaned"
+                                                                        class="mdi mdi-information"
+                                                                        v-tooltip="t.orphaned ? `{ :m_template_orphaned }` : ``"></i></span>
+                                                            </td>
+                                                            <td>
+                                                                <span v-if="t.disabled">
+                                                                    { :m_status_inactive }
+                                                                </span>
+                                                                <span v-else>
+                                                                    { :m_status_active }
+                                                                </span>
+                                                            </td>
+                                                            <td class="align-content-end" align="right">
+                                                                <button v-if="t.disabled && !t.orphaned"
+                                                                    class="btn btn-success"
+                                                                    @click="activateTemplate(t)">
+                                                                    { :m_enable }</button>
+                                                                <button v-else-if="!t.orphaned" class="btn btn-warning"
+                                                                    @click="deactivateTemplate(t)">
+                                                                    { :m_disable }</button>
+                                                                <button v-if="!t.orphaned" class="btn btn-primary px-2"
+                                                                    @click='openModal(t)' data-toggle="modal">
+                                                                    <i class="mdi mdi-pencil mr-0"></i></button>
+                                                                <button class="btn btn-danger px-2"
+                                                                    @click='deleteContext = t'>
+                                                                    <i class="mdi mdi-delete mr-0"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <h3 v-show="templates.length == 0" class="text-center">
+                                                    { :m_no_templates }
+                                                </h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="editModal" data-action="" data-id="" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_edit_title }</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                            aria-hidden="true" @click="closeDialog('editModal')">&times;</span></button>
+                                </div>
+                                <div class="modal-body" v-if="editObj != null">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label class="form-label" for="name">{ :m_name }</label>
+                                                <input type="text" v-model="editObj.displayName" id="displayName"
+                                                    class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="minCpu" class="form-label">{ :m_min_cpu }</label>
+                                                <input v-model="editObj.minCpu" type="number" name="" id="minCpu"
+                                                    class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label" for="minRam">{ :m_min_ram }</label>
+                                                <input v-model="editObj.minRAM" type="number" name="" id="minRam"
+                                                    class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="minDisk" class="form-label">{ :m_min_disk }</label>
+                                                <input v-model="editObj.minDisk" type="number" name="" id="minDisk"
+                                                    class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="defaultDrive" class="form-label">
+                                                    { :m_default_drive }</label>
+                                                <select v-model="editObj.defaultDrive" name="" id="defaultDrive"
+                                                    class="form-control">
+                                                    <option v-for="option in editObj.driveOptions"
+                                                        :value="option.value">
+                                                        {{ option.value }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="user" class="form-label">{ :m_user }</label>
+                                                <input v-model="editObj.defaultUser" type="text" id="user"
+                                                    class="form-control" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button @click="closeDialog('editModal')" type="button"
+                                        class="btn btn-secondary mr-auto" data-dismiss="modal">
+                                        { :m_close_btn }</button>
+                                    <button type="button" class="btn btn-success" id="saveBtn" @click="saveTemplate()">
+                                        { :m_save }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <modal :show="deleteContext != null" @hide="deleteContext = null" title="{ :m_warning }"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <p>{ :m_are_you_sure } {{ confirmationTextDelete }}</p>
+
+                            <div class="form-group" v-show="!deleteContext?.orphaned">
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input v-model="deleteInProxmox" type="checkbox" class="form-check-input">
+                                        { :m_remove_template_in_proxmox }
+                                    </label>
+                                </div>
+                            </div>
+
+                            <input ref="deleteInput" class="form-control text-center" :placeholder="confirmTextDelete"
+                                v-model="deleteConfirmationText">
+                        </template>
+                        <template #footer>
+                            <button type="button" :disabled="loading || deleteConfirmationText != confirmTextDelete"
+                                class="btn btn-danger" id="saveBtn" @click="deleteTemplate()">
+                                { :m_delete }</button>
+                        </template>
+                    </modal>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js';
+        import Modal from '{ :app_url }js/components/modal.js';
+
+        var app = new Vue({
+            components: { Modal },
+            el: '#app',
+            data: {
+                templates: [],
+                editObj: null,
+                deleteConfirmationText: "",
+                deleteContext: null,
+                loading: false,
+                deleteInProxmox: false
+            },
+            created: async function () {
+                await this.load();
+            },
+            computed: {
+                confirmTextDelete: function() {
+                    return "{ :m_delete_message_default }"
+                },
+                confirmationTextDelete: function() {
+                    return '{ :m_delete_message }'.replace('{{template}}', "{ :m_delete_message_default }");
+                }
+            },
+            methods: {
+                load: async function () {
+                    $("#app").show();
+                    $.get('{ :app_url }api/admin/get-templates', (result) => {
+                        this.templates = result.templates;
+                        var el = document.getElementById('items');
+                        let sortable = Sortable.create(el, {
+                            group: 'sort-order',
+                            animation: 150,
+                            handle: ".mdi-reorder-horizontal",
+                            ghostClass: "sortable-ghost", // Class name for the drop placeholder
+                            store: {
+                                set: (sortable) => {
+                                    var order = sortable.toArray();
+                                    const res = {};
+                                    for (let i = 0; i < order.length; i++) {
+                                        res[order[i]] = i;
+                                    }
+                                    $.post('{ :app_url }api/templates/save-order', {
+                                        order: res
+                                    }, (data) => {
+                                        toastr.success('{ :m_saved }')
+                                    })
+                                }
+                            }
+                        });
+                    })
+                },
+                openModal: async function (data) {
+                    $.get(`{ :app_url }api/admin/load-template-information/${data.vmid}`, (result) => {
+                        const config = result.config
+                        if (data.displayName == null) {
+                            data.displayName = config.name.replace(/-/g, ' ')
+                        }
+                        if (data.defaultDrive == null) {
+                            data.defaultDrive = "scsi0";
+                        }
+                        if (data.defaultUser == null) {
+                            data.defaultUser = "root";
+                        }
+
+                        // parse available drives from config keys
+                        const drives = Object.keys(config).filter((e) =>
+                            /(scsi|ide|sata|virtio)(\d+)/.test(e)).map(e => ({
+                            value: e
+                        }));
+
+                        this.editObj = {
+                            ...data,
+                            ...config,
+                            driveOptions: drives,
+                        };
+                        console.log(this.editObj);
+                        this.openDialog("editModal");
+                    })
+                },
+                deactivateTemplate: async function (data) {
+                    $.get('{ :app_url }api/admin/disable-template/' + data.vmid, (data) => {
+                        toastr.success('{ :m_succ_disabled }');
+                        this.load();
+                    })
+                },
+                activateTemplate: async function (data) {
+                    $.get('{ :app_url }api/admin/enable-template/' + data.vmid, (data) => {
+                        toastr.success('{ :m_succ_enabled }');
+                        this.load();
+                    })
+                },
+                saveTemplate: function () {
+                    $.post('{ :app_url }api/admin/save-template/' + this.editObj.id, this.editObj, (
+                        result) => {
+                        toastr.success('{ :m_template_saved }')
+                        this.load()
+                    });
+                },
+                deleteTemplate: async function() {
+                    this.loading = true;
+                    const id = this.deleteContext.id;
+                    this.deleteContext = null;
+                    this.deleteConfirmationText = "";
+                    const prom = $.delete("{ :app_url }api/admin/delete-template/" + id, {
+                        deleteInProxmox: this.deleteInProxmox
+                    });
+                    this.deleteInProxmox = false;
+
+                    await toastr.promise(
+                        prom, 
+                        '{ :m_loading }', 
+                        (result) => { 
+                            '{ :m_success_message }'}, 
+                        (error) => 
+                            error.responseJSON.message ?? '{ :m_error_message }');
+                    this.loading = false;
+                    this.load();
+                },
+                openDialog: function (target) {
+                    document.getElementsByTagName('body')[0].classList.add('modal-open');
+                    const element = document.createElement('div');
+                    element.classList.add('modal-backdrop', 'fade', 'show');
+                    element.id = "modal-backdrop";
+                    document.getElementsByTagName('body')[0].appendChild(element);
+                    document.getElementById(target).classList.add('show', 'd-block')
+                },
+                closeDialog: function (target) {
+                    document.getElementsByTagName('body')[0].classList.remove('modal-open');
+                    const element = document.getElementById('modal-backdrop');
+                    document.getElementsByTagName('body')[0].removeChild(element);
+                    document.getElementById(target).classList.remove('show', 'd-block')
+                },
+            }
+        });
+    </script>
+
+</body>
+
+</html>

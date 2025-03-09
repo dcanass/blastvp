@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :hostname }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    { css css/skeleton.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <style>
+        .switch2 {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch2 input {
+            display: none;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #00ce68;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #00ce68;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        input:disabled:checked+.slider {
+            background-color: rgba(0, 206, 104, 0.3);
+
+        }
+
+        input:disabled+.slider {
+            cursor: not-allowed;
+            background-color: rgba(0, 206, 104, 0.3);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .sortable-ghost {
+            opacity: .5;
+            background: #C8EBFB;
+        }
+
+        input-icon {
+            position: relative;
+        }
+
+        .input-icon i {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            transition: color 0.15s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" style="display: none;" id="app">
+                    <div class="row">
+                        <div class="col-12 grid-margin" v-if="server.status === 'suspended'">
+                            <div class="alert alert-danger rounded-0 border-0 m-0">
+                                <h3>{ :m_suspended_title }</h3>
+                                <p>{ :m_suspended_message }</p>
+                                <button class="btn btn-primary" @click="unsuspendServer">
+                                    { :m_suspended_button }</button>
+                            </div>
+                        </div>
+                        <div class="col-12 grid-margin" v-if="server.cancelledAt !== null">
+                            <div class="alert alert-warning rounded-0 border-0 m-0">
+                                <h3>{ :m_cancelled_title }</h3>
+                                <p>{ :m_cancelled_message }</p>
+                                <button class="btn btn-primary" @click="uncancelServer">{ :m_cancelled_button }</button>
+                            </div>
+                        </div>
+                        <div class="col-md-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row flex-column-reverse flex-lg-row">
+                                        <div class="col-md-6">
+                                            <h3>
+                                                <span style=" border-width: 9px;" class="status-indicator" :class="{ 
+                                                        'online': status == 'online', 
+                                                        'offline': status == 'offline',
+                                                        'suspended': status == 'suspended',
+                                                        'inline-block': !serverStatusLoading,
+                                                        'loading': serverStatusLoading
+                                                    }" v-tooltip="server._status ?? 'unknown'"></span>
+                                                Server: {{server.hostname}}
+                                            </h3>
+                                            <h4><i class="mdi mdi-harddisk"></i>{{server.os}}</h4>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="row justify-content-end">
+                                                <div class="switch2 mx-1">
+                                                    <label class="">
+                                                        <input :checked="status == 'online'"
+                                                            :disabled="!canUpdate || !serverCanBeStatusChanged"
+                                                            type="checkbox" @click="toggleStatus">
+                                                        <div class="slider round"></div>
+                                                    </label>
+                                                </div>
+
+                                                <span class="dropdown">
+                                                    <span class="btn btn-sm btn-secondary text-center" type="button"
+                                                        id="actionButtons" data-toggle="dropdown" aria-haspopup="true"
+                                                        aria-expanded="false">
+                                                        <i class="mdi mdi-dots-vertical"></i>
+                                                    </span>
+                                                    <ul class="dropdown-menu dropdown-menu-right"
+                                                        aria-labelledby="actionButtons">
+                                                        <a v-if="server.status != 'suspended'" class="dropdown-item"
+                                                            href="#" @click="openTerminal"><i
+                                                                class="mdi mdi-open-in-new"></i> { :m_terminal }</a>
+                                                        <a v-if="server.status != 'suspended' && canUpdate"
+                                                            class="dropdown-item" href="#"
+                                                            @click="showIsoModal = true"><i class="mdi mdi-disc"></i>
+                                                            { :m_attach_iso }</a>
+                                                        <a v-if="server.status != 'suspended' && canUpdate"
+                                                            class="dropdown-item" href="#"
+                                                            @click="showBootOrderModal = true"><i
+                                                                class="mdi mdi-order-bool-ascending-variant"></i>
+                                                            { :m_boot_order }
+                                                        </a>
+                                                        <a v-if="server.status != 'suspended' && canUpdate && server.snapshotsEnabled"
+                                                            class="dropdown-item" href="#"
+                                                            @click="showSnapshots = true"><i
+                                                                class="mdi mdi-camera-outline"></i>
+                                                            { :m_snapshots }
+                                                        </a>
+                                                        <li v-if="server.status != 'suspended' && canUpdate">
+                                                            <a href="#" class="dropdown-item"><i
+                                                                    class="mdi mdi-flash"></i> { :m_power_options } </a>
+                                                            <ul
+                                                                class="dropdown-menu dropdown-submenu dropdown-submenu-left">
+                                                                <li>
+                                                                    <a class="dropdown-item"
+                                                                        :class="{ disabled: !online }" href="#"
+                                                                        v-if="canUpdate"
+                                                                        @click="online ? openDialog('restartServerModal') : () => {}">
+                                                                        { :m_restart }</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="dropdown-item" v-if="canUpdate"
+                                                                        :class="{ disabled: !online }"
+                                                                        @click="online ? openDialog('resetServerModal') : () => {}">
+                                                                        { :m_reset }</a>
+                                                                </li>
+                                                                <li>
+                                                                    <a href="#" class="dropdown-item" v-if="canUpdate"
+                                                                        @click="openDialog('stopServerModal')">
+                                                                        { :m_stop }</a>
+                                                                </li>
+                                                            </ul>
+                                                        </li>
+                                                        <a style="cursor:pointer" class="dropdown-item"
+                                                            v-if="canDelete && server.guestAgentEnabled"
+                                                            @click.prevent="showPasswordResetModal = true">
+                                                            <i class="mdi mdi-lock"></i> { :m_reset_password }
+                                                        </a>
+                                                        <a class="dropdown-item" style="cursor: pointer"
+                                                            v-if="canDelete" @click.prevent="showShareModal = true">
+                                                            <i class="mdi mdi-share-variant"></i> { :m_share } </a>
+                                                        <a v-if="server.status != 'suspended' && canDelete" href="#"
+                                                            class="dropdown-item"
+                                                            @click="openDialog('serverResetModal')">
+                                                            <i class="mdi mdi-lock-reset"></i>
+                                                            { :m_confirm_rebuild }</a>
+                                                        <a v-if="canDelete" href="#" class="dropdown-item"
+                                                            @click.prevent="showRescaleModal = true">
+                                                            <i class="mdi mdi-relative-scale"></i> { :m_rescale }
+                                                        </a>
+                                                        <a class="dropdown-item" href="#"
+                                                            v-if="canDelete && (server.cancelledAt !== null || server.status === 'suspended')"
+                                                            @click="openDialog('deleteServerModal')">
+                                                            <i class="mdi mdi-delete-outline"></i> { :m_delete }</a>
+                                                        <a v-if="canDelete && server.status != 'suspended' && server.cancelledAt === null"
+                                                            class="dropdown-item" href="#" @click="cancelServer">
+                                                            <i class="mdi mdi-close"></i> { :m_cancel_button }</a>
+                                                        <a v-if="canDelete && server.status != 'suspended' && server.cancelledAt !== null "
+                                                            class="dropdown-item" href="#" @click="uncancelServer">
+                                                            <i class="mdi mdi-arrow-u-left-top"></i>
+                                                            { :m_cancelled_button }</a>
+                                                        <a href="#" v-if="canDelete" @click="showTags = true"
+                                                            class="dropdown-item">
+                                                            <i class="mdi mdi-tag-multiple"></i> { :m_tags }</a>
+                                                    </ul>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 grid-margin">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-md-6">
+                                            <h4>{ :m_general_information }:</h4>
+                                            <p>
+                                                <b>{ :m_cores }</b>: {{server.cpu}} <br>
+                                                <b>{ :m_ram }</b>: {{server.ram}} MB /
+                                                {{(server.ram / 1024).toFixed(2)}}
+                                                GB<br>
+                                                <b>{ :m_disk }</b>: {{server.disk}} GB<br>
+                                                <b>{ :m_price }</b>: {{server.priceFormatted}}<br>
+                                            </p>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <h4>{ :m_network_information }:</h4>
+                                            <div>
+                                                <b v-if="server.ip">{ :m_ip4 }: </b>
+                                                <span v-if="server.ip"
+                                                    style="cursor: pointer; text-decoration: underline;" v-popover.html="{
+                                                        title: `{ :m_ip4 } { :m_information }:`, 
+                                                        placement: 'top',
+                                                        content: `<b>IP:</b> ${server.ip}/${server._ip.subnet}<br><b>GW:</b>${server._ip.gateway}<br>${server._ip.mac ? server._ip.mac : ''}`
+                                                    }">
+                                                    {{server.ip}}</span> <br>
+                                                <b v-if="server.ip6">{ :m_ip6 }: </b>
+
+                                                <span v-if="server.ip6"
+                                                    style="cursor: pointer; text-decoration: underline;" v-popover.html="{ 
+                                                        title: `{ :m_ip6 } { :m_information }:`, 
+                                                        placement: 'top', 
+                                                        content: `<b>IP:</b> ${server._ip6.ip}<br><b>GW:</b> ${server._ip6.gateway}` 
+                                                    }">
+                                                    {{server._ip6.ip}}</span> <br>
+
+                                                <p v-for="(net, i) in server.networks" :key="i" class="mb-0"><b>IP:
+                                                    </b>{{net.ip}} ({{ net.friendlyName }})</p>
+
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6" v-if="tags.length > 0">
+                                            <h4>{ :m_tags }</h4>
+                                            <span style="text-transform: none" class="badge badge-primary mx-1"
+                                                v-tooltip="t.key" v-for="(t, i) in tags" :key="i">{{t.value}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 grid-margin">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <line-chart v-if="charts.cpu" chart-id="cpuChart"
+                                            :chart-data="loadCpuChart().chart" :options="loadCpuChart().options"
+                                            style="height: 200px;"></line-chart>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 grid-margin">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <line-chart v-if="charts.ram" chart-id="ramChart"
+                                            :chart-data="loadRamChart().chart" :options="loadRamChart().options"
+                                            style="height: 200px;"></line-chart>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 grid-margin h-50">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <line-chart v-if="charts.network" chart-id="networkChart"
+                                            :chart-data="loadNetworkChart().chart" :options="loadNetworkChart().options"
+                                            style="height: 200px;">
+                                        </line-chart>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 grid-margin h-100">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h4 class="">{ :m_notes }</h4>
+                                    <div class="form-group">
+                                        <textarea style="font-family: monospace, monospace;"
+                                            v-model="server.description" name="" id="" cols="30" rows="10"
+                                            class="form-control h-100 p-3" :disabled="!canUpdate"></textarea>
+                                    </div>
+                                    <button :disabled="!canUpdate" class="btn btn-primary float-right mt-2"
+                                        @click="saveServer()">
+                                        { :m_save }</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div :class="mod.classes" class="mb-4" v-for="(mod, k) in mods">
+                            <component :is="mod.component" />
+                        </div>
+                    </div>
+                    <div class="modal fade" id="restartServerModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_restart }</h4>
+                                    <button type="button" class="close" @click="closeDialog('restartServerModal')"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3 mx-0 text-center">
+                                        <p>{ :m_are_you_sure }</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto"
+                                        @click="closeDialog('restartServerModal')">
+                                        { :m_close_btn }</button>
+                                    <button type="button" class="btn btn-danger" id="saveBtn" @click="restartServer">
+                                        { :m_restart }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="stopServerModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_stop }</h4>
+                                    <button type="button" class="close" @click="closeDialog('stopServerModal')"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3 mx-0 text-center">
+                                        <p>{ :m_server_stop_are_you_sure }</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto"
+                                        @click="closeDialog('stopServerModal')">
+                                        { :m_close_btn }</button>
+                                    <button type="button" class="btn btn-danger" id="saveBtn" @click="stopServer">
+                                        { :m_stop }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="resetServerModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_reset }</h4>
+                                    <button type="button" class="close" @click="closeDialog('resetServerModal')"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3 mx-0 text-center">
+                                        <p>{ :m_server_reset_are_you_sure }</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto"
+                                        @click="closeDialog('resetServerModal')">
+                                        { :m_close_btn }</button>
+                                    <button type="button" class="btn btn-danger" id="saveBtn" @click="resetServer">
+                                        { :m_reset }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="deleteServerModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_delete }</h4>
+                                    <button type="button" class="close" @click="closeDialog('deleteServerModal')"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row mb-3 mx-0">
+                                        <b>{ :m_delete_info }</b>
+                                        <p class="pt-2">{{ m_delete_message }}</p>
+                                        <input ref="deleteConfirmation" v-model="deleteConfirmation" type="text"
+                                            class="form-control text-center" :placeholder="server.hostname">
+                                    </div>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto"
+                                        @click="closeDialog('deleteServerModal')">
+                                        { :m_close_btn }</button>
+                                    <button type="button" :disabled="deleteConfirmation != server.hostname"
+                                        class="btn btn-danger" id="saveBtn" @click="deleteServer()">
+                                        { :m_delete }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="serverResetModal" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_confirm_rebuild }</h4>
+                                    <button type="button" class="close" @click="closeDialog('serverResetModal')"
+                                        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-danger" v-if="resetError">
+                                        {{ resetError }}
+                                    </div>
+                                    <div class="alert alert-success" v-if="resetMessage">
+                                        {{ resetMessage }}
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <p>{ :m_rebuild_desc }</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">
+                                                { :m_hostname }</label>
+                                            <div class="col-sm-9">
+                                                <input id="password"
+                                                    :class="{ 'is-invalid': resetHostnameValidationFailed }"
+                                                    v-model="reset.hostname" type="text" class="form-control"
+                                                    placeholder="{ :m_hostname }" autocomplete="new-password">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">
+                                                { :m_password }</label>
+                                            <div class="col-sm-9">
+                                                <div class="input-icon">
+                                                    <input id="password2"
+                                                        :class="{ 'is-invalid': resetPasswordValidationFailed }"
+                                                        v-model="reset.password" type="password" class="form-control"
+                                                        placeholder="{ :m_password }" autocomplete="new-password">
+                                                    <i class="mdi mdi-dice-5 generate-random-password-button"
+                                                        @click="generateSecurePassword('reset','password')"
+                                                        v-tooltip="`{ :m_gen_pw }`"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">
+                                                { :m_confirm_password }</label>
+                                            <div class="col-sm-9">
+                                                <input id="confirm_password" v-model="reset.confirm_password"
+                                                    :class="{ 'is-invalid': resetPasswordValidationFailed }"
+                                                    type="password" class="form-control"
+                                                    placeholder="{ :m_confirm_password }">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">{ :m_ssh }</label>
+                                            <div class="col-sm-9">
+                                                <select name="ssh" id="ssh" v-model="reset.ssh_key"
+                                                    class="form-control">
+                                                    <option value="" disabled="disabled" selected="selected">
+                                                        { :m_select }
+                                                    </option>
+                                                    <option v-for="(k, i) in sshKeys" :value="k.id">{{k.name}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12"
+                                        v-if="!server.packageId || (server.packageId && !server.package.templateId)">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">{ :m_os }</label>
+                                            <div class="col-sm-9">
+                                                <select id="os-select" v-model="reset.templateId"
+                                                    :class="{ 'is-invalid': resetOSValidationFailed }"
+                                                    class="form-control">
+                                                    <option value="" disabled="disabled" selected="selected">
+                                                        { :m_select }
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary mr-auto"
+                                        @click="closeDialog('serverResetModal')">
+                                        { :m_close_btn }</button>
+                                    <button type="button" class="btn btn-danger" :disabled="resetLoading" id="saveBtn"
+                                        @click="rebuildServer()">
+                                        <i class="mdi mdi-loading mdi-spin" v-if="resetLoading"></i>
+                                        { :m_confirm_rebuild }</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Modal :show="showShareModal" :title="`{ :m_share }`" :close-text="`{ :m_close_btn }`"
+                        @hide="showShareModal = false">
+                        <template #body>
+                            <div class="row form-group">
+                                <label class="col-sm-3 col-form-label">{ :m_share_email }</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" type="email" v-model="newShare.email">
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 col-form-label">{ :m_share_role }</label>
+                                <div class="col-sm-9">
+                                    <select name="" v-model="newShare.role" id="" class=" form-control">
+                                        <option value="reader">{ :m_share_role_reader }</option>
+                                        <option value="editor">{ :m_share_role_editor }</option>
+                                        <option value="admin">{ :m_share_role_admin }</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <table class="table">
+                                        <thead>
+                                            <td>{ :m_share_user }</td>
+                                            <td>{ :m_share_role }</td>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="u in server.shareList">
+                                                <td class="px-0">{{u.username}} ({{u.email}})</td>
+                                                <td class="px-0">
+                                                    <select name="" @change="updateAccess(u)" v-model="u.permissions"
+                                                        id="" class="form-control form-control-sm">
+                                                        <option value="r">{ :m_share_role_reader }</option>
+                                                        <option value="ru">{ :m_share_role_editor }</option>
+                                                        <option value="rud">{ :m_share_role_admin }</option>
+                                                    </select>
+                                                </td>
+                                                <td class="px-0"><button class="float-right btn btn-sm btn-danger"
+                                                        @click="revokeAccess(u.id)">{ :m_share_revoke }</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-primary" @click="inviteUser">{ :m_share_invite }</button>
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showIsoModal" :title="`{ :m_attach_iso }`" :close-text="`{ :m_close_btn }`"
+                        @hide="showIsoModal = false">
+                        <template #body>
+                            <div class="row" v-if="Object.keys(server.attachedIsos ?? {}).length > 0">
+                                <div class="col-12">
+                                    <p>{ :m_currently_attached }</p>
+                                </div>
+                            </div>
+                            <div class="row" v-if="Object.keys(server.attachedIsos ?? {}).length > 0">
+                                <div class="col-12 pb-3">
+                                    <table class="table">
+                                        <colgroup>
+                                            <col width="100%" />
+                                            <col width="0%" />
+                                        </colgroup>
+                                        <tr v-for="(iso, key) in server.attachedIsos">
+                                            <td class="px-0 py-1"
+                                                style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;">
+                                                <i class="mdi mdi-disc" v-tooltip="`{ :m_attached_as }: ${key}`"></i>
+                                                <span v-tooltip="iso">{{iso}}</span>
+                                            </td>
+                                            <td class="px-0 py-1"><button class="float-right btn btn-sm btn-danger"
+                                                    @click="detachIso(key)">{ :m_detach_iso_btn }</button>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row" v-if="Object.keys(server.attachedIsos ?? {}).length > 0">
+                                <div class="col-12">
+                                    <p>{ :m_attach_iso_text }</p>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 col-form-label">{ :m_attach_select }</label>
+                                <div class="col-sm-9">
+                                    <searchable-input :placeholder="`{ :m_search_placeholder }`"
+                                        :nothing="`{ :m_search_nothing }`" :options="isosAvailable"
+                                        @update="attachIsoSelect.iso = $event" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        <input v-model="attachIsoSelect.bootFirst" type="checkbox"
+                                            class="form-check-input ">
+                                        { :m_set_first_iso }<i class="input-helper"></i>
+                                    </label>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-primary" @click="attachIso">{ :m_attach_iso_btn }</button>
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showPasswordResetModal" title="{ :m_reset_password }" :close-text="`{ :m_close_btn }`"
+                        @hide="showPasswordResetModal = false">
+                        <template #body>
+                            <div class="row form-group">
+                                <label class="col-sm-3 col-form-label">{ :m_reset_password_user }</label>
+                                <div class="col-sm-9">
+                                    <input class="form-control" placeholder="root" type="text"
+                                        v-model="passwordReset.user">
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 col-form-label">{ :m_reset_password_password }</label>
+                                <div class="col-sm-9">
+                                    <div class="input-icon">
+                                        <input class="form-control" placeholder="..." type="password"
+                                            v-model="passwordReset.password">
+                                        <i class="mdi mdi-dice-5 generate-random-password-button"
+                                            @click="generateSecurePassword('passwordReset','password')"
+                                            v-tooltip="`{ :m_gen_pw }`"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-warning" @click="resetPassword">{ :m_reset_password }</button>
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showBootOrderModal" :title="`{ :m_boot_order }`" :close-text="`{ :m_close_btn }`"
+                        @hide="showBootOrderModal = false">
+                        <template #body>
+                            <div class="row">
+                                <div class="col-12">
+                                    <p>{ :m_current_boot_order }</p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 pb-3">
+                                    <table class="table">
+                                        <tbody id="boot-order-items">
+                                            <tr v-for="(device, key) in internalBootOrder" :key="key" :data-id="key">
+                                                <td class="px-0 py-1">
+                                                    <i class="mdi mdi-reorder-horizontal mr-2" style="cursor:grab"></i>
+                                                    <span>{{key}} - {{device}}</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-primary" @click="saveServer">{ :m_save }</button>
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showTags" @hide="showTags= false" :title="`Tags`" close-text="{ :m_close_btn }">
+                        <template #body>
+                            <Tags hint-text="{ :m_tags_hinttext }" :resource="`server-${id}`" ref="tags"
+                                @update="tags = $event" />
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-primary" id="saveBtn" @click="saveTags()">
+                                { :m_save }
+                        </template>
+                    </Modal>
+
+
+                    <Modal :show="showRescaleModal" @hide=" showRescaleModal=false" :title="`Rescale`"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <!-- {{packages}} -->
+                            <div v-if="server.packageId">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <p>{ :m_rescale_notice_2 }</p>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <div class="form-check">
+                                                <label class="form-check-label">
+                                                    <input v-model="rescaleActionValues.leaveDisk" type="checkbox"
+                                                        class="form-check-input ">
+                                                    { :m_rescale_skip_disk }<i class="input-helper"></i>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" v-for="pack in possiblePackages" :key="pack.id">
+                                    <div class="col-12 p-2">
+                                        <div class="card rounded" style="cursor: pointer;"
+                                            @click="rescaleActionValues.packageId = pack.id">
+                                            <div class="card-body rounded" style="box-sizing: border-box"
+                                                :class="{ 'border border-primary': rescaleActionValues.packageId === pack.id }">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <h4>{{pack.name}}</h4>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-3">
+                                                        <p class="mb-0">{ :m_cores }:</p>
+                                                        <b>{{pack.cpu}} { :m_cores }</b>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <p class="mb-0">{ :m_ram }:</p>
+                                                        <b>{{pack.ram / 1024 | toFixed(2)}}GB</b>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <p class="mb-0">{ :m_disk }:</p>
+                                                        <b>{{rescaleActionValues.leaveDisk ? server.disk :
+                                                            pack.disk}}GB</b>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <p class="mb-0">{ :m_price }</p>
+                                                        <b>{{pack.priceFormatted}}</b>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="!server.packageId">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label for="" class="col-sm-3 col-form-label">{ :m_cores }</label>
+                                            <div class="col-sm-9">
+                                                <select v-model="rescaleActionValues.cpu" name="" id=""
+                                                    class="form-control">
+                                                    <option v-for="k, i in rescaleInfos.cpu" :key="i" :value="i">{{k}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label for="" class="col-sm-3 col-form-label">{ :m_ram }</label>
+                                            <div class="col-sm-9">
+                                                <select v-model="rescaleActionValues.memory" name="" id=""
+                                                    class="form-control">
+                                                    <option v-for="k, i in rescaleInfos.memory" :key="i" :value="i">
+                                                        {{k}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group row">
+                                            <label class="col-sm-3 col-form-label">{ :m_disk }</label>
+                                            <div class="col-sm-9">
+                                                <select v-model="rescaleActionValues.disk" name="" id=""
+                                                    class="form-control">
+                                                    <option v-for="k, i in rescaleInfos.disk" :key="i" :value="i">{{k}}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <hr>
+                                    <div class="text-right">
+                                        <p>{ :m_rescale_new_price }: <b>{{rescalePriceInfo.newPrice}}</b></p>
+                                        <h4 class="text-right"><span id="price">{ :m_rescale_pay_today }:
+                                                {{rescalePriceInfo.payToday }}*</span></h4>
+                                    </div>
+                                    <br>
+                                    <p><small><i>{ :m_rescale_pay_notice }</i></small></p>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button v-tooltip="server.status === 'offline' ? '' : '{ :m_err_online }'"
+                                :disabled="server.status !== 'offline'" type="button" class="btn btn-primary"
+                                id="saveBtn" @click="saveRescale()">
+                                { :m_save }
+                        </template>
+                    </Modal>
+
+                    <Modal :show="showSnapshots" @hide="showSnapshots=false" :title="`{ :m_snapshots }`"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <p>{ :m_snapshot_create }</p>
+                            <div class="form-group">
+                                <label for="" class="col-form-label">{ :m_snapshot_name }</label>
+                                <input type="text" class="form-control" v-model="snapshotSettings.name">
+                            </div>
+                            <div class="form-group">
+                                <label for="" class="col-form-label">{ :m_snapshot_description }</label>
+                                <textarea rows="2" type="text" class="form-control"
+                                    v-model="snapshotSettings.description"></textarea>
+                            </div>
+
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input v-model="snapshotSettings.includeMemory" type="checkbox"
+                                        class="form-check-input ">
+                                    { :m_snapshot_memory }<i class="input-helper"></i>
+                                </label>
+                            </div>
+                            <div class="col-12">
+                                <table class="table">
+                                    <thead>
+                                        <td>{ :m_snapshot_name }</td>
+                                        <td>{ :m_snapshot_date }</td>
+                                        <td></td>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="snap in snapshots">
+                                            <td class="px-0">
+                                                <span v-tooltip="snap._status" class='status-indicator' :class="{ 
+                                                        'offline': ['pending', 'creating'].includes(snap.status),
+                                                        'suspended': snap.status == 'deleting',
+                                                        'online': snap.status == 'available'
+                                                    }">
+                                                </span>
+                                                {{snap.name}}
+                                                <i v-if="snap.description" class="mdi mdi-information-outline"
+                                                    v-tooltip="snap.description"></i>
+                                            </td>
+                                            <td class="px-0">{{snap.createdAt | formatDate}}</td>
+                                            <td class="px-0">
+                                                <div class="float-right">
+                                                    <i v-if="snap.status == 'available'"
+                                                        class="btn btn-sm btn-warning mdi mdi-backup-restore"
+                                                        @click="restoreSnapshot(snap.id)"
+                                                        v-tooltip="`{ :m_snapshot_restore }`"></i>
+                                                    <i v-if="snap.status == 'available'"
+                                                        class="btn btn-sm btn-danger mdi mdi-trash-can-outline"
+                                                        @click="deleteSnapshot(snap.id)"
+                                                        v-tooltip="`{ :m_snapshot_delete }`"></i>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-primary" @click="createSnapshot()">
+                                { :m_create }
+                        </template>
+                    </Modal>
+
+                </div>
+                <div class="content-wrapper" id="loader">
+                    <div class="ssc-square"></div>
+                    <div class="row">
+                        <div class="col-6 mt-4">
+                            <div class="ssc-square" style="height: 200px"></div>
+                        </div>
+                        <div class="col-6 mt-4">
+                            <div class="ssc-square" style="height: 200px"></div>
+                        </div>
+                        <div class="col-6 mt-4">
+                            <div class="ssc-square" style="height: 200px"></div>
+                        </div>
+                        <div class="col-6 mt-4">
+                            <div class="ssc-square" style="height: 200px"></div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="ssc-square" style="height: 200px"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+
+        <!-- container-scroller -->
+
+    </div>
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <!-- End custom js for this page-->
+
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import '{ :app_url }js/components/filters.js'
+        import SearchableInput from '{ :app_url }js/components/searchable-input.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import Tags from '{ :app_url }js/components/tags.js'
+
+        import { ACL } from '{ :app_url }js/acl.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        const mods = JSON.parse('{ :vueModules }');
+        const mo = {};
+
+        await Promise.all(mods.map(async e => {
+            mo[e.component] = (await import(e.handler))[e.name]
+        }));
+
+
+        Vue.component('line-chart', {
+            mixins: [VueChartJs.mixins.reactiveProp],
+            extends: VueChartJs.Line,
+            props: ['options'],
+            mounted() {
+                this.renderChart(this.chartData, this.options)
+            },
+        });
+
+        var app = new Vue({
+            components: {
+                ...mo,
+                Modal,
+                SearchableInput,
+                Tags
+            },
+            el: '#app',
+            data: {
+                user: JSON.parse('<?= json_encode($__USER); ?>'),
+                id: "{ :id }",
+                charts: [],
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        point: {
+                            radius: 0
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'timeseries',
+                            time: {
+                                tooltipFormat: 'H:mm',
+                                unit: 'minute',
+                                minUnit: 'minute',
+                                displayFormats: {
+                                    'millisecond': 'H:mm',
+                                    'second': 'H:mm',
+                                    'minute': 'H:mm',
+                                    'hour': 'H:mm',
+                                    'day': 'H:mm',
+                                    'week': 'H:mm',
+                                    'month': 'H:mm',
+                                    'quarter': 'H:mm',
+                                    'year': 'H:mm',
+                                }
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 10,
+                                maxRotation: 0,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    hover: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                    }
+                },
+                statusLoading: false,
+                reset: {
+                    password: "",
+                    confirm_password: "",
+                    ssh_key: "",
+                    templateId: "",
+                    hostname: ""
+                },
+                resetPasswordValidationFailed: false,
+                resetOSValidationFailed: false,
+                resetHostnameValidationFailed: false,
+                resetError: null,
+                resetMessage: null,
+                resetLoading: false,
+                deleteConfirmation: "",
+                server: false,
+                sshKeys: [],
+                mods,
+                showShareModal: false,
+                newShare: {
+                    email: "",
+                    role: ""
+                },
+                showIsoModal: false,
+                isosAvailable: [],
+                attachIsoSelect: {
+                    iso: null,
+                    bootFirst: false
+                },
+                tags: [],
+                showTags: false,
+                showRescaleModal: false,
+                rescaleInfos: {
+                    cpu: [],
+                    memory: [],
+                    disk: []
+                },
+                rescaleActionValues: {
+                    cpu: '',
+                    memory: '',
+                    disk: '',
+                    packageId: 0,
+                    leaveDisk: true
+                },
+                rescalePriceInfo: {
+                    newPrice: "",
+                    oldPrice: "",
+                    diff: "",
+                },
+                packages: [],
+                showBootOrderModal: false,
+                internalBootOrder: [],
+
+                showPasswordResetModal: false,
+                passwordReset: {
+                    user: '',
+                    password: ''
+                },
+                showSnapshots: false,
+                internalSnapshots: { snapshots: [], meta: {} },
+                snapshotSettings: { name: "", includeMemory: false },
+                snapshotTimer: null
+            },
+            created: async function () {
+                $.ajaxSetup({
+                    headers: {
+                        Authorization: `Token ${this.user.apiToken}`
+                    }
+                })
+
+                await this.loadBaseData();
+                $("#app").show()
+                $("#loader").hide();
+                await this.loadInfo();
+                setInterval(function () {
+                    this.loadInfo();
+                }.bind(this), 2500);
+                this.loadRescaleInfo();
+                this.loadPackages();
+            },
+            methods: {
+                loadBaseData: async function () {
+                    const data = await $.get("{ :app_url }api/server/" + this.id);
+                    this.server = data.server;
+                    this.sshKeys = data.ssh_keys;
+                    this.loadIsos();
+                    this.rescaleActionValues.cpu = this.server.cpu;
+                    this.rescaleActionValues.memory = this.server.ram;
+                    this.rescaleActionValues.disk = this.server.disk;
+                    this.rescaleActionValues.packageId = this.server.packageId;
+                },
+                loadInfo: async function () {
+
+                    let charts = {};
+                    let graph = await this.getChartData();
+
+
+                    let cpu = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: 'CPU',
+                                backgroundColor: 'rgba(220,53,69, 0.5)',
+                                data: graph.map(ele => ((ele.cpu ?? 0) * 100).toFixed(2))
+                            }
+                        ]
+                    };
+
+                    let ram = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: 'RAM Used',
+                                backgroundColor: 'rgba(255,193,7, 0.5)',
+                                data: graph.map(ele => ((ele.mem ?? 0) / Math.pow(1024, 3)).toFixed(2))
+                            },
+                            {
+                                fill: 'origin',
+                                label: 'RAM Total',
+                                data: graph.map(ele => ((ele.maxmem ?? 0) / Math.pow(1024, 3)).toFixed(2))
+                            }
+                        ]
+                    };
+
+                    let network = {
+                        labels: graph.map(ele => ele.time * 1000),
+                        datasets: [
+                            {
+                                fill: 'origin',
+                                label: 'Netout',
+                                backgroundColor: 'rgba(0,200,81, 0.5)',
+                                data: graph.map(ele => (ele.netout ? (ele.netout / 1000000) : 0).toFixed(2)),
+                                // data: graph.map(ele => (ele.netout ? (ele.netout ) : 0).toFixed(2)),
+                                order: 1,
+                                label: 'Netout (MB/s) '
+                            },
+                            {
+                                fill: 'origin',
+                                label: 'Netin',
+                                backgroundColor: 'rgba(51,181,229, 0.5)',
+                                data: graph.map(ele => (ele.netin ? (ele.netin / 1000000) : 0).toFixed(2)),
+                                // data: graph.map(ele => (ele.netin ? (ele.netin ) : 0).toFixed(2)),
+                                order: 2,
+                                label: 'Netin (MB/s) '
+                            },
+                        ]
+                    }
+
+                    this.charts = {
+                        cpu,
+                        ram,
+                        network,
+                    };
+
+                    if (this.internalBootOrder.length === 0) {
+                        this.internalBootOrder = this.server.bootOrder;
+                    }
+
+                    var el = document.getElementById('boot-order-items');
+                    let sortable = Sortable.create(el, {
+                        group: 'sort-order',
+                        animation: 150,
+                        handle: ".mdi-reorder-horizontal",
+                        ghostClass: "sortable-ghost", // Class name for the drop placeholder
+                        store: {
+                            set: (sortable) => {
+                                this.server.bootOrder = sortable.toArray();
+                            }
+                        }
+                    });
+                },
+                async getChartData(node) {
+                    return await $.get('{ :app_url }api/server/graph/' + this.id);
+                },
+                loadCpuChart: function () {
+                    return {
+                        chart: this.charts.cpu, options: {
+                            ...this.options,
+                            scales: {
+                                ...this.options.scales,
+                                y: {
+                                    suggestedMin: 0,
+                                    suggestedMax: 100,
+                                },
+                            },
+                            plugins: {
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    callbacks: {
+                                        label: function (context) {
+                                            let label = context.dataset.label || '';
+
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y + ' %';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                            }
+                        }
+                    };
+                },
+                loadRamChart: function () {
+                    return {
+                        chart: this.charts.ram, options: {
+                            ...this.options,
+                            plugins: {
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    callbacks: {
+                                        label: function (context) {
+                                            let label = context.dataset.label || '';
+
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y + ' GiB';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                            }
+                        }
+                    };
+                },
+                loadNetworkChart: function () {
+                    return {
+                        chart: this.charts.network, options: {
+                            ...this.options,
+                            scales: {
+                                ...this.options.scales,
+                                y: {
+                                    min: 0,
+                                },
+                            },
+                        }
+                    };
+                },
+                toggleStatus: async function () {
+                    this.statusLoading = true;
+                    const interval = setInterval(() => {
+                        this.loadBaseData();
+                    }, 500);
+                    try {
+                        const data = $.get(`{ :app_url }api/server/${this.status == 'online' ? 'shutdown' : 'start'}/${this.id}`);
+                        await toastr.promise(data, '{ :m_loading }', '', data.message);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    clearInterval(interval);
+                    this.statusLoading = false;
+                    this.loadBaseData();
+                },
+                restartServer: async function () {
+                    this.statusLoading = true;
+                    this.closeDialog('restartServerModal')
+                    const prom = $.get(`{ :app_url }api/server/restart/${this.id}`);
+                    await toastr.promise(prom, "{ :m_loading }", "{ :m_restarted_done }", "{ :m_error }");
+                    this.statusLoading = false;
+                    this.loadBaseData();
+                },
+                resetServer: async function () {
+                    this.statusLoading = true;
+                    this.closeDialog('resetServerModal')
+                    const prom = $.get(`{ :app_url }api/server/reset/${this.id}`);
+                    await toastr.promise(prom, "{ :m_loading }", "{ :m_reset_done }", "{ :m_error }")
+                    this.statusLoading = false;
+                    this.loadBaseData();
+                },
+                stopServer: async function () {
+                    this.statusLoading = true;
+                    this.closeDialog('stopServerModal')
+                    const prom = $.get(`{ :app_url }api/server/stop/${this.id}`);
+                    await toastr.promise(prom, "{ :m_loading }", "{ :m_stop_done }", "{ :m_error }");
+                    this.statusLoading = false;
+                    this.loadBaseData();
+                },
+                openTerminal: function () {
+                    const a = window.open(
+                        `{ :app_url }server/terminal/${this.id}`,
+                        "_blank",
+                    );
+                    a.focus();
+                },
+                deleteServer: function () {
+                    this.closeDialog('deleteServerModal');
+                    $.get(`{ :app_url }api/server/delete/${this.id}`, (data) => {
+                        if (data.error === true) {
+                            toastr.error(data.message);
+                        } else {
+                            window.location = '{ :app_url }?serverDeleted'
+                        }
+                    });
+                },
+                openDialog: function (target) {
+                    document.getElementsByTagName('body')[0].classList.add('modal-open');
+                    const element = document.createElement('div');
+                    element.classList.add('modal-backdrop', 'fade', 'show');
+                    element.id = "modal-backdrop";
+                    document.getElementsByTagName('body')[0].appendChild(element);
+                    document.getElementById(target).classList.add('show', 'd-block')
+                },
+                closeDialog: function (target) {
+                    document.getElementsByTagName('body')[0].classList.remove('modal-open');
+                    const element = document.getElementById('modal-backdrop');
+                    document.getElementsByTagName('body')[0].removeChild(element);
+                    document.getElementById(target).classList.remove('show', 'd-block')
+                },
+                resetValidations: function () {
+                    this.resetPasswordValidationFailed = false;
+                },
+                generateSecurePassword: function (target, target2) {
+                    const rnd = this.generatePassword(20);
+                    Vue.set(this[target], target2, rnd);
+                    if (!navigator.clipboard) {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = rnd;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        try {
+                            document.execCommand('copy');
+                            toastr.success('{ :m_gen_pw_copied }');
+                        } catch (err) {
+                            toastr.error('{ :m_gen_pw_copy_failed }')
+                        }
+                    } else {
+                        navigator.clipboard.writeText(rnd).then(() => {
+                            toastr.success('{ :m_gen_pw_copied }');
+                        }).catch((error) => {
+                            toastr.error('{ :m_gen_pw_copy_failed }')
+                        })
+                    }
+                },
+                rebuildServer: function () {
+                    this.resetHostnameValidationFailed = this.reset.hostname == "";
+                    this.resetPasswordValidationFailed = this.reset.password == "" || this.reset.password != this.reset.confirm_password;
+                    this.resetOSValidationFailed = this.reset.templateId == "" && (!this.server.packageId || (this.server.packageId && !this.server.package.templateId));
+
+                    if (
+                        this.resetPasswordValidationFailed ||
+                        this.resetOSValidationFailed ||
+                        this.resetHostnameValidationFailed
+                    ) {
+                        return;
+                    }
+                    this.resetLoading = true;
+                    $.post('{ :app_url }api/server/rebuild/' + this.id, {
+                        templateId: this.reset.templateId,
+                        hostname: this.reset.hostname,
+                        password: this.reset.password,
+                        confirm_password: this.reset.confirm_password,
+                        ssh: this.reset.ssh_key
+                    }, (data) => {
+                        this.resetLoading = false;
+                        console.log(data);
+                        if (data.error === true) {
+
+                            this.resetError = data.message
+                        } else {
+                            // no error
+
+                            this.resetError = null;
+                            this.resetMessage = data.message
+                            this.loadBaseData()
+                        }
+                    })
+                },
+                saveServer: async function () {
+                    const prom = $.patch(`{ :app_url }api/server/${this.server.id}`, this.server);
+                    try {
+                        toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message ?? '{ :m_internal_error }')
+                    } catch (err) {
+
+                    }
+                    this.loadBaseData()
+                },
+                inviteUser: async function () {
+                    const res = $.post(`{ :app_url }api/server/share/${this.server.id}`, this.newShare);
+                    await toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData()
+                },
+                revokeAccess: async function (id) {
+                    const res = $.post(`{ :app_url }api/server/revoke-share/${this.server.id}`, {
+                        id
+                    });
+                    await toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                },
+                updateAccess: async function (element) {
+                    const res = $.post(`{ :app_url }api/server/update-share/${this.server.id}`, {
+                        permissions: element.permissions,
+                        id: element.id
+                    });
+                    toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                },
+                loadIsos: async function () {
+                    const res = await $.get(`{ :app_url }api/server/isos/${this.server.id}`);
+                    this.isosAvailable = res.map(e => ({ key: e, value: e }));
+                },
+                detachIso: async function (iso) {
+                    const prom = $.patch(`{ :app_url }api/server/${this.server.id}`, {
+                        detach: iso
+                    });
+                    try {
+                        await toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    } catch (err) {
+
+                    }
+                    this.loadBaseData()
+                },
+                attachIso: async function (iso) {
+                    const prom = $.patch(`{ :app_url }api/server/${this.server.id}`, {
+                        attach: this.attachIsoSelect.iso,
+                        bootFirst: this.attachIsoSelect.bootFirst
+                    });
+                    try {
+                        await toastr.promise(prom, '{ :m_loading }', (e) => {
+                            if (e.error) {
+                                throw new Error(e.message);
+                            } else {
+                                return '{ :m_saved }'
+                            }
+                        }, (e) => e.message ?? '{ :m_internal_error }')
+                    } catch (err) {
+
+                    }
+                    this.loadBaseData()
+                },
+                cancelServer: async function () {
+                    const res = $.get(`{ :app_url }api/server/cancel/${this.server.id}`);
+                    await toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                },
+                uncancelServer: async function () {
+                    const res = $.get(`{ :app_url }api/server/revoke-cancel/${this.server.id}`);
+                    await toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                },
+                unsuspendServer: async function () {
+                    const res = $.get(`{ :app_url }api/server/unsuspend/${this.server.id}`);
+                    await toastr.promise(res, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                },
+                saveTags: async function () {
+                    await this.$refs.tags.save();
+                    toastr.success('{ :m_saved }');
+                    await this.$refs.tags.load();
+                },
+                loadRescaleInfo: async function () {
+                    const data = await $.get(`${app_url}api/order-info/${this.server.id}`);
+                    this.rescaleInfos.cpu = data.cpu;
+                    this.rescaleInfos.memory = data.memory;
+                    this.rescaleInfos.disk = data.disk;
+                },
+                loadPackages: async function () {
+                    const packages = await $.get(`${app_url}api/packages/get`);
+                    this.packages = packages;
+                },
+                saveRescale: async function () {
+                    const prom = $.patch(`${app_url}api/server/rescale/${this.server.id}`, this.rescaleActionValues);
+                    await toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    await this.loadBaseData();
+                    await this.loadRescaleInfo();
+                    this.showRescaleModal = false;
+                },
+                resetPassword: async function () {
+                    const prom = $.post(`${app_url}api/server/reset-password/${this.server.id}`, this.passwordReset);
+                    const res = await toastr.promise(prom, '{ :m_loading }');
+
+                    if (res.error) {
+                        toastr.error(res.message)
+                    } else {
+                        toastr.success(res.message)
+                    }
+                    this.showPasswordResetModal = false;
+                },
+                generatePassword: (length = 20) => {
+                    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=";
+                    let password = "";
+                    for (let i = 0; i < length; i++) {
+                        const randomIndex = Math.floor(Math.random() * charset.length);
+                        password += charset[randomIndex];
+                    }
+                    return password;
+                },
+                loadSnapshots: async function () {
+                    const data = await $.get(`${app_url}api/server/snapshots/${this.server.id}`);
+                    this.internalSnapshots = data;
+                },
+                createSnapshot: async function () {
+                    //
+                    const prom = $.post(`${app_url}api/server/snapshots/${this.server.id}`, this.snapshotSettings);
+                    await toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => { console.log(e); return e.responseJSON.message });
+                    this.loadSnapshots();
+                },
+                deleteSnapshot: async function (id) {
+                    const prom = $.delete(`${app_url}api/server/snapshots/${this.server.id}`, {
+                        snapshotId: id
+                    });
+                    await toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    this.loadSnapshots();
+                },
+                restoreSnapshot: async function (id) {
+                    const prom = $.post(`${app_url}api/server/snapshots/${this.server.id}/restore`, {
+                        snapshotId: id
+                    });
+                    await toastr.promise(prom, '{ :m_loading }', '{ :m_saved }', (e) => e.responseJSON.message);
+                    this.loadBaseData();
+                }
+            },
+            computed: {
+                serverId: function () {
+                    return this.server.id;
+                },
+                serverUserId: function () {
+                    return this.server.userid;
+                },
+                m_delete_message: function () {
+                    return '{ :m_delete_message }'.replace("{{template}}", this.server?.hostname)
+                },
+                online: function () {
+                    return this.status == "online"
+                },
+                status: function () {
+                    return this.server.status
+                },
+                serverCanBeStatusChanged: function () {
+                    return ['online', 'offline'].includes(this.status);
+                },
+                serverStatusLoading: function () {
+                    return this.statusLoading || ['starting', 'stopping', 'restarting'].includes(this.status)
+                },
+                possiblePackages: function () {
+                    return this.packages.filter(e => {
+                        // if the disk will not be touched, we are not allowed to downgrade to packages that 
+                        // have smaller spec than the current one
+                        if (this.rescaleActionValues.leaveDisk) {
+                            // if we want to leave the disk alone, we can scale to any package where the disk is greater 
+                            // than the current package AND the specs are smaller
+                            return this.server.disk <= e.disk;
+                        } else {
+                            // since we want to scale the disk as well, we can only scale to packages
+                            // where the disk is greater or equal to the current size
+                            return e.disk >= this.server.disk
+                            // be aware that the current size does not need to be the current packages disk size
+                        }
+                    })
+                },
+                snapshots: function () {
+                    return this.internalSnapshots?.snapshots.filter(e => e.name !== 'current');
+                },
+                snapshotMeta: function () {
+                    return this.internalSnapshots.meta;
+                }
+            },
+            beforeCreate: function () {
+                this.$options.computed = {
+                    ...this.$options.computed,
+                    ...window.ACL.ACLMixin('serverUserId', 'server', 'serverId'),
+                }
+            },
+            watch: {
+                rescaleActionValues: {
+                    async handler(newValue, oldValue) {
+                        const data = await $.post(`${app_url}api/server/recalc-price/${this.server.id}`, this.rescaleActionValues);
+                        this.rescalePriceInfo = data;
+                    },
+                    deep: true
+                },
+                showSnapshots: {
+                    async handler(newValue, oldValue) {
+                        if (newValue) {
+                            this.snapshotTimer = setInterval(() => {
+                                this.loadSnapshots();
+                            }, 2000);
+                            this.loadSnapshots();
+                        } else {
+                            if (this.snapshotTimer) {
+                                clearInterval(this.snapshotTimer)
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        $(() => {
+            $.get('{ :app_url }api/host/load-isos', (data) => {
+                data.forEach((ele) => {
+                    $("#os-select").append(new Option(ele.displayName, ele.id));
+                })
+            });
+        });
+    </script>
+
+</body>
+
+</html>

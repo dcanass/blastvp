@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jerosoler/Drawflow/dist/drawflow.min.css">
+
+    <style>
+        :root {
+            --dfBackgroundColor: #ffffff;
+            --dfBackgroundSize: 19px;
+            --dfBackgroundImage: radial-gradient(rgba(169, 169, 169, 1) 1px, transparent 1px);
+
+            --dfNodeType: flex;
+            --dfNodeTypeFloat: none;
+            --dfNodeBackgroundColor: rgba(251, 251, 251, 1);
+            --dfNodeTextColor: #000000;
+            --dfNodeBorderSize: 1px;
+            --dfNodeBorderColor: rgba(197, 197, 197, 1);
+            --dfNodeBorderRadius: 4px;
+            --dfNodeMinHeight: 40px;
+            --dfNodeMinWidth: 160px;
+            --dfNodePaddingTop: 15px;
+            --dfNodePaddingBottom: 15px;
+            --dfNodeBoxShadowHL: 0px;
+            --dfNodeBoxShadowVL: 0px;
+            --dfNodeBoxShadowBR: 0px;
+            --dfNodeBoxShadowS: 0px;
+            --dfNodeBoxShadowColor: null;
+
+            --dfNodeHoverBackgroundColor: rgba(251, 251, 251, 1);
+            --dfNodeHoverTextColor: #000000;
+            --dfNodeHoverBorderSize: 1px;
+            --dfNodeHoverBorderColor: rgba(119, 119, 119, 1);
+            --dfNodeHoverBorderRadius: 4px;
+
+            --dfNodeHoverBoxShadowHL: 0px;
+            --dfNodeHoverBoxShadowVL: 0px;
+            --dfNodeHoverBoxShadowBR: 0px;
+            --dfNodeHoverBoxShadowS: 0px;
+            --dfNodeHoverBoxShadowColor: #4ea9ff;
+
+            --dfNodeSelectedBackgroundColor: rgba(251, 251, 251, 1);
+            --dfNodeSelectedTextColor: rgba(0, 0, 0, 1);
+            --dfNodeSelectedBorderSize: 1px;
+            --dfNodeSelectedBorderColor: #000000;
+            --dfNodeSelectedBorderRadius: 4px;
+
+            --dfNodeSelectedBoxShadowHL: 0px;
+            --dfNodeSelectedBoxShadowVL: 0px;
+            --dfNodeSelectedBoxShadowBR: 12px;
+            --dfNodeSelectedBoxShadowS: 1px;
+            --dfNodeSelectedBoxShadowColor: rgba(186, 186, 186, 1);
+
+            --dfInputBackgroundColor: #ffffff;
+            --dfInputBorderSize: 1px;
+            --dfInputBorderColor: rgba(153, 153, 153, 1);
+            --dfInputBorderRadius: 50px;
+            --dfInputLeft: -25px;
+            --dfInputHeight: 15px;
+            --dfInputWidth: 15px;
+
+            --dfInputHoverBackgroundColor: #ffffff;
+            --dfInputHoverBorderSize: 1px;
+            --dfInputHoverBorderColor: #000000;
+            --dfInputHoverBorderRadius: 50px;
+
+            --dfOutputBackgroundColor: #ffffff;
+            --dfOutputBorderSize: 2px;
+            --dfOutputBorderColor: #000000;
+            --dfOutputBorderRadius: 50px;
+            --dfOutputRight: -3px;
+            --dfOutputHeight: 20px;
+            --dfOutputWidth: 20px;
+
+            --dfOutputHoverBackgroundColor: #ffffff;
+            --dfOutputHoverBorderSize: 2px;
+            --dfOutputHoverBorderColor: #000000;
+            --dfOutputHoverBorderRadius: 50px;
+
+            --dfLineWidth: 3px;
+            --dfLineColor: #4682b4;
+            --dfLineHoverColor: #4682b4;
+            --dfLineSelectedColor: #43b993;
+
+            --dfRerouteBorderWidth: 2px;
+            --dfRerouteBorderColor: #000000;
+            --dfRerouteBackgroundColor: #ffffff;
+
+            --dfRerouteHoverBorderWidth: 2px;
+            --dfRerouteHoverBorderColor: #000000;
+            --dfRerouteHoverBackgroundColor: #ffffff;
+
+            --dfDeleteDisplay: block;
+            --dfDeleteColor: #ffffff;
+            --dfDeleteBackgroundColor: #000000;
+            --dfDeleteBorderSize: 2px;
+            --dfDeleteBorderColor: #ffffff;
+            --dfDeleteBorderRadius: 50px;
+            --dfDeleteTop: -15px;
+
+            --dfDeleteHoverColor: #000000;
+            --dfDeleteHoverBackgroundColor: #ffffff;
+            --dfDeleteHoverBorderSize: 2px;
+            --dfDeleteHoverBorderColor: #000000;
+            --dfDeleteHoverBorderRadius: 50px;
+
+        }
+
+        #drawflow {
+            background: var(--dfBackgroundColor);
+            background-size: var(--dfBackgroundSize) var(--dfBackgroundSize);
+            background-image: var(--dfBackgroundImage);
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        .drawflow,
+        .drawflow .parent-node {
+            position: absolute;
+        }
+
+        .drawflow .drawflow-node {
+            pointer-events: all;
+            position: relative;
+            display: var(--dfNodeType);
+            background: var(--dfNodeBackgroundColor);
+            color: var(--dfNodeTextColor);
+            border: var(--dfNodeBorderSize) solid var(--dfNodeBorderColor);
+            border-radius: var(--dfNodeBorderRadius);
+            min-height: var(--dfNodeMinHeight);
+            width: auto;
+            min-width: var(--dfNodeMinWidth);
+            padding-top: var(--dfNodePaddingTop);
+            padding-bottom: var(--dfNodePaddingBottom);
+            -webkit-box-shadow: var(--dfNodeBoxShadowHL) var(--dfNodeBoxShadowVL) var(--dfNodeBoxShadowBR) var(--dfNodeBoxShadowS) var(--dfNodeBoxShadowColor);
+            box-shadow: var(--dfNodeBoxShadowHL) var(--dfNodeBoxShadowVL) var(--dfNodeBoxShadowBR) var(--dfNodeBoxShadowS) var(--dfNodeBoxShadowColor);
+        }
+
+        .drawflow .drawflow-node:hover {
+            background: var(--dfNodeHoverBackgroundColor);
+            color: var(--dfNodeHoverTextColor);
+            border: var(--dfNodeHoverBorderSize) solid var(--dfNodeHoverBorderColor);
+            border-radius: var(--dfNodeHoverBorderRadius);
+            -webkit-box-shadow: var(--dfNodeHoverBoxShadowHL) var(--dfNodeHoverBoxShadowVL) var(--dfNodeHoverBoxShadowBR) var(--dfNodeHoverBoxShadowS) var(--dfNodeHoverBoxShadowColor);
+            box-shadow: var(--dfNodeHoverBoxShadowHL) var(--dfNodeHoverBoxShadowVL) var(--dfNodeHoverBoxShadowBR) var(--dfNodeHoverBoxShadowS) var(--dfNodeHoverBoxShadowColor);
+        }
+
+        .drawflow .drawflow-node.selected {
+            background: var(--dfNodeSelectedBackgroundColor);
+            color: var(--dfNodeSelectedTextColor);
+            border: var(--dfNodeSelectedBorderSize) solid var(--dfNodeSelectedBorderColor);
+            border-radius: var(--dfNodeSelectedBorderRadius);
+            -webkit-box-shadow: var(--dfNodeSelectedBoxShadowHL) var(--dfNodeSelectedBoxShadowVL) var(--dfNodeSelectedBoxShadowBR) var(--dfNodeSelectedBoxShadowS) var(--dfNodeSelectedBoxShadowColor);
+            box-shadow: var(--dfNodeSelectedBoxShadowHL) var(--dfNodeSelectedBoxShadowVL) var(--dfNodeSelectedBoxShadowBR) var(--dfNodeSelectedBoxShadowS) var(--dfNodeSelectedBoxShadowColor);
+        }
+
+        .drawflow .drawflow-node .input {
+            left: var(--dfInputLeft);
+            background: var(--dfInputBackgroundColor);
+            border: var(--dfInputBorderSize) solid var(--dfInputBorderColor);
+            border-radius: var(--dfInputBorderRadius);
+            height: var(--dfInputHeight);
+            width: var(--dfInputWidth);
+        }
+
+        .drawflow .drawflow-node .input:hover {
+            background: var(--dfInputHoverBackgroundColor);
+            border: var(--dfInputHoverBorderSize) solid var(--dfInputHoverBorderColor);
+            border-radius: var(--dfInputHoverBorderRadius);
+        }
+
+        .drawflow .drawflow-node .outputs {
+            float: var(--dfNodeTypeFloat);
+        }
+
+        .drawflow .drawflow-node .output {
+            right: var(--dfOutputRight);
+            background: var(--dfOutputBackgroundColor);
+            border: var(--dfOutputBorderSize) solid var(--dfOutputBorderColor);
+            border-radius: var(--dfOutputBorderRadius);
+            height: var(--dfOutputHeight);
+            width: var(--dfOutputWidth);
+        }
+
+        .drawflow .drawflow-node .output:hover {
+            background: var(--dfOutputHoverBackgroundColor);
+            border: var(--dfOutputHoverBorderSize) solid var(--dfOutputHoverBorderColor);
+            border-radius: var(--dfOutputHoverBorderRadius);
+        }
+
+        .drawflow .connection .main-path {
+            stroke-width: var(--dfLineWidth);
+            stroke: var(--dfLineColor);
+        }
+
+        .drawflow .connection .main-path:hover {
+            stroke: var(--dfLineHoverColor);
+        }
+
+        .drawflow .connection .main-path.selected {
+            stroke: var(--dfLineSelectedColor);
+        }
+
+        .drawflow .connection .point {
+            stroke: var(--dfRerouteBorderColor);
+            stroke-width: var(--dfRerouteBorderWidth);
+            fill: var(--dfRerouteBackgroundColor);
+        }
+
+        .drawflow .connection .point:hover {
+            stroke: var(--dfRerouteHoverBorderColor);
+            stroke-width: var(--dfRerouteHoverBorderWidth);
+            fill: var(--dfRerouteHoverBackgroundColor);
+        }
+
+        .drawflow-delete {
+            display: var(--dfDeleteDisplay);
+            color: var(--dfDeleteColor);
+            background: var(--dfDeleteBackgroundColor);
+            border: var(--dfDeleteBorderSize) solid var(--dfDeleteBorderColor);
+            border-radius: var(--dfDeleteBorderRadius);
+        }
+
+        .parent-node .drawflow-delete {
+            top: var(--dfDeleteTop);
+        }
+
+        .drawflow-delete:hover {
+            color: var(--dfDeleteHoverColor);
+            background: var(--dfDeleteHoverBackgroundColor);
+            border: var(--dfDeleteHoverBorderSize) solid var(--dfDeleteHoverBorderColor);
+            border-radius: var(--dfDeleteHoverBorderRadius);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" style="padding: 0; position: relative;" id="app">
+                    <div class="action-bar row col-12 mx-0" style="position: absolute; padding: 25px; z-index: 99;">
+                        <div class="mr-2 dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Open
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a href="#" class="dropdown-item" @click="loadSingleEvent(null)">
+                                    <span class="mdi mdi-plus"></span> New
+                                </a>
+                                <a class="dropdown-item" href="#" v-for="e in events" @click="loadSingleEvent(e.id)">
+                                    <span v-if="!e.enabled" class="mdi mdi-cancel"></span> {{e.friendlyName}}</a>
+                            </div>
+                        </div>
+                        <button @click="save" class="mx-2 btn btn-primary">Save</button>
+                        <div class="mx-2 dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Trigger
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="#" @click="add('event', 0, 1)">Event</a>
+                            </div>
+                        </div>
+                        <div class="mx-2 dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Enrichers
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" href="#" @click="add('filter', 1, 2)">Filter</a>
+                                <a href="#" class="dropdown-item" @click="add('add-field', 1, 1)">Add Field</a>
+                                <a href="#" class="dropdown-item" @click="add('math-field', 1, 1)">Math Field</a>
+                                <a class="dropdown-item" href="#" @click="add('load-data', 1, 1)">Default
+                                    Enricher</a>
+                                <a class="dropdown-item" href="#" @click="add('load-rest', 1, 1)">REST
+                                    Resource</a>
+                                <a href="#" class="dropdown-item" @click="add('load-tags', 1, 1)">Load Tags</a>
+                                <a href="#" class="dropdown-item" @click="add('ipam', 1, 1)">IPAM</a>
+                            </div>
+                        </div>
+                        <div class="mx-2 dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Actions
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <a class="dropdown-item" v-for="a in actions" href="#"
+                                    @click="add(a.name, 1, 0)">{{a.display}}</a>
+                                <a class="dropdown-item" href="#" @click="add('nothing', 1, 0)">Exit</a>
+                            </div>
+                        </div>
+                        <button v-if="editId && editId.enabled" @click="disable"
+                            class="mx-2 btn btn-danger">Disable</button>
+                        <button v-if="editId && !editId.enabled" @click="enable"
+                            class="mx-2 btn btn-success">Enable</button>
+                        <div class="mr-0 ml-auto">
+                            <button v-if="!editId" @click="importFromJson" class="mx-2 btn btn-primary">Import
+                                JSON</button>
+                            <button v-if="editId" @click="exportJson" class="mx-2 btn btn-primary">Export JSON</button>
+                            <button v-if="editId" @click="deleteFlow" class="mx-2 btn btn-danger">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div style="width: 100%; height: 100%">
+                        <div id="drawflow">
+                        </div>
+                    </div>
+
+                    <modal :show="showSaveModal" @hide="showSaveModal = false" title="Save new event-flow"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="form-group">
+                                <input type="text" v-model="friendlyName" placeholder="my event-flow"
+                                    class="form-control">
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-success" @click="createNew()">Save</button>
+                        </template>
+                    </modal>
+
+                    <modal :show="showJsonExport" @hide="showJsonExport = false" title="Exported Flow"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="form-group">
+                                <textarea class="form-control" :value="exportedJson" name="" id="" cols="30"
+                                    rows="20"></textarea>
+                                <label for="" class="col-form-label">Shareable link:</label>
+                                <input type="text" class="form-control" readonly :value="exportedJsonLink">
+                            </div>
+
+                        </template>
+                    </modal>
+
+                    <modal :show="showJsonImport" @hide="showJsonImport = false" title="Import from JSON"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="form-group">
+                                <textarea class="form-control" v-model="importJson" name="" id="" cols="30"
+                                    rows="20"></textarea>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-primary" :disabled="!importJsonIsValid"
+                                @click="commitImportJson">Import</button>
+                        </template>
+                    </modal>
+
+                    <modal :show="showInitialModal" @hide="showInitialModal = false" title="Event System"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div v-if="events.length > 0">
+                                <p>Click to open flow:</p>
+                                <ul class="list-group">
+                                    <li class="list-group-item" v-for="e in events">
+                                        <span v-if="!e.enabled" v-tooltip="`Currently disabled`"
+                                            class="mdi mdi-cancel"></span> {{e.friendlyName}}</a>
+                                        <button @click="loadSingleEvent(e.id); showInitialModal=false"
+                                            class="float-right btn btn-sm btn-primary">Open <span
+                                                class="mdi mdi-arrow-right"></span></button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div v-else>
+                                <ul class="list-group">
+                                    <li @click="showInitialModal = false" class="list-group-item text-center"
+                                        style="cursor: pointer;">Create New</li>
+                                </ul>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button @click="showInitialModal = false" class="btn btn-success">Create New</button>
+                        </template>
+                    </modal>
+
+                    <modal :show="showVariableFiller" @hide="showVariableFiller = false"
+                        title="Fill variables for testing" close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="col-12 form-group">
+                                <div class="row" v-for="(variable, i) in variablesToFill" :key='i'>
+                                    <div class="col-6 pr-0">
+                                        <input disabled="disabled" :value="variable.key" type="text"
+                                            class="form-control" />
+                                    </div>
+                                    <div class="col-6 pl-0">
+                                        <input placeholder="Value" type="text" v-model="variable.value"
+                                            class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button class="btn btn-primary" @click="testEventAction">Send</button>
+                        </template>
+                    </modal>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import Drawflow from '{ :app_url }js/drawflow.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        import EventComponent from '{ :app_url }js/components/flow/event.js'
+        import FilterComponent from '{ :app_url }js/components/flow/filter.js'
+
+        // Enrichers
+        import LoadDataComponent from '{ :app_url }js/components/flow/load-data.js'
+        import LoadRestComponent from '{ :app_url }js/components/flow/load-rest.js'
+        import AddFieldComponent from '{ :app_url }js/components/flow/add-field.js'
+        import MathComponent from '{ :app_url }js/components/flow/math-field.js'
+        import LoadTagsComponent from '{ :app_url }js/components/flow/load-tags.js'
+        import IPAMComponent from '{ :app_url }js/components/flow/ipam.js'
+
+        import NothingComponent from '{ :app_url }js/components/flow/actions/nothing.js'
+
+        const bus = window['event-bus'] = new Vue();
+
+        var app = new Vue({
+            el: "#app",
+            components: { Modal },
+            data: {
+                editor: null,
+                events: [],
+                showSaveModal: false,
+                friendlyName: "",
+                editId: null,
+                showJsonExport: false,
+                exportedJsonLink: "",
+                showJsonImport: false,
+                importJson: "",
+                exportedJson: "",
+                showInitialModal: false,
+                showVariableFiller: false,
+                variablesToFill: [{ key: "test.a", value: "" }],
+                testData: [],
+                actionToTest: '',
+                actions: []
+            },
+            mounted: async function () {
+                var id = document.getElementById("drawflow");
+                const editor = this.editor = new Drawflow(id, Vue, this);
+
+                this.loadEvents();
+
+                this.editor.reroute = false;
+                this.editor.reroute_fix_curvature = true;
+
+                this.editor.on('connectionCreated', () => {
+                    this.triggerTriggerUpdate();
+                });
+
+                this.editor.on('connectionRemoved', () => {
+                    this.triggerTriggerUpdate();
+                });
+
+
+                editor.curvature = 0;
+                editor.reroute_curvature_start_end = 0;
+                editor.reroute_curvature = 0;
+                editor.createCurvature = function (start_pos_x, start_pos_y, end_pos_x, end_pos_y, curvature_value) {
+                    var center_x = ((end_pos_x - start_pos_x) / 2) + start_pos_x;
+                    return ' M ' + start_pos_x + ' ' + start_pos_y + ' L ' + center_x + ' ' + start_pos_y + ' L ' + center_x + ' ' + end_pos_y + ' L ' + end_pos_x + ' ' + end_pos_y;
+                }
+
+                this.editor.start();
+
+                /** register nodes **/
+                this.editor.registerNode('event', EventComponent, { event: "" }, {})
+
+
+                // enrichers
+                this.editor.registerNode('filter', FilterComponent, {
+                    'field': '',
+                    'operation': '',
+                    'value': ''
+                }, {})
+                this.editor.registerNode('load-data', LoadDataComponent, {
+                    'table': '',
+                    'inputfield': '',
+                    'joinfield': '',
+                    'asfield': ''
+                }, {})
+                this.editor.registerNode('load-rest', LoadRestComponent, {
+                    'url': '',
+                    'method': '',
+                    'responsejson': '',
+                    'asfield': '',
+                    'headers': '',
+                    'content': '',
+                    'contenttype': ''
+                }, {});
+                this.editor.registerNode('add-field', AddFieldComponent, {
+                    'field': '',
+                    'value': ''
+                });
+                this.editor.registerNode('math-field', MathComponent, {
+                    'field1': '',
+                    'field2': '',
+                    'operation': '',
+                    'asfield': ''
+                });
+                this.editor.registerNode('load-tags', LoadTagsComponent, {
+                    'resource': '',
+                    'joinfield': '',
+                    'asfield': ''
+                })
+                this.editor.registerNode('ipam', IPAMComponent, {
+
+                })
+
+                // actions
+                this.editor.registerNode('nothing', NothingComponent, {})
+
+                const actions = await $.get(`${app_url}api/admin/events/actions`);
+                this.actions = actions;
+                await Promise.all(actions.map(async e => {
+                    const imported = (await import(`{ :app_url }${e.url}`)).default
+                    this.editor.registerNode(e.name, imported, {})
+                }));
+
+                bus.$on('emitData', (payload) => {
+                    const node = this.editor.getNodeFromId(payload.id.slice(5));
+                    if (node.outputs)
+                        Object.values(node.outputs).forEach((output) => {
+                            output.connections.forEach((connection) => {
+                                bus.$emit('receiveData', {
+                                    id: connection.node,
+                                    inputs: payload.data.outputs
+                                })
+                            })
+                        });
+                    this.$nextTick(() => {
+                        Object.values(editor.drawflow.drawflow.Home.data).map(e => {
+                            editor.updateConnectionNodes(`node-${e.id}`);
+                        })
+                    })
+                });
+
+                bus.$on('test-action', (message) => {
+                    this.actionToTest = message.action;
+                    this.testData = message.data;
+                    this.variablesToFill = [];
+
+                    let matches = [];
+                    Object.values(message.data).forEach((e) => {
+                        const match = e.match(/(?:{{)(?:(?:\s+)?)((\.?\w)+)(?:(\s+)?)(?:}})/g);
+                        if (match) {
+                            match.forEach(ee => {
+                                matches.push({
+                                    key: ee.slice(2, -2),
+                                    value: ""
+                                });
+                            })
+                        }
+                    });
+
+                    this.variablesToFill = matches;
+                    if (matches.length > 0) {
+                        this.showVariableFiller = true;
+                    } else {
+                        // do dispatch action directly, since there are no templates
+                        this.testEventAction();
+                    }
+                });
+
+                bus.$on('update-data', (data) => {
+                    this.editor.updateNodeDataFromId(data.nodeId.slice(5), data.data)
+                });
+
+                this.showInitialModal = true;
+            },
+            methods: {
+                testEventAction: async function () {
+                    // convert variablesToFill to kv-object for parameters
+                    let vars = {};
+                    this.variablesToFill.forEach(e => {
+                        vars[e.key] = e.value
+                    });
+
+                    const result = await $.post("{ :app_url }api/admin/events/test-action", {
+                        action: this.actionToTest,
+                        data: this.testData,
+                        parameters: vars
+                    });
+
+                    if (result.status == 'ok') {
+                        toastr.success('ok');
+                    } else {
+                        toastr.error(result.result);
+                    }
+                },
+                loadEvents: async function () {
+                    const data = await $.get('{ :app_url }api/admin/events');
+                    this.events = data;
+                },
+                triggerTriggerUpdate: function () {
+                    bus.$emit('triggerTrigger', {});
+                },
+                goTo: function (id) {
+                    window.location = `{ :app_url }admin/users/${id}`;
+                },
+                add: function (name, inputs, outputs) {
+                    const { width, height } = this.editor.container.getBoundingClientRect();
+                    const x = width / 2;
+                    const y = height / 2;
+
+                    let pos_x = x * (this.editor.precanvas.clientWidth / (this.editor.precanvas.clientWidth * this.editor.zoom)) - (this.editor.precanvas.getBoundingClientRect().x * (this.editor.precanvas.clientWidth / (this.editor.precanvas.clientWidth * this.editor.zoom)));
+                    let pos_y = y * (this.editor.precanvas.clientHeight / (this.editor.precanvas.clientHeight * this.editor.zoom)) - (this.editor.precanvas.getBoundingClientRect().y * (this.editor.precanvas.clientHeight / (this.editor.precanvas.clientHeight * this.editor.zoom)));
+
+                    pos_y = pos_y - (600 / 2); // pull up a bit
+
+                    this.editor.addNode(name, inputs, outputs, pos_x, pos_y, '', {}, name, 'vue');
+                },
+                save: function () {
+                    if (this.editId && this.editId.id) {
+                        this.saveUpdate()
+                    } else {
+                        this.showSaveModal = true;
+                    }
+                },
+                createNew: async function () {
+                    const result = await $.post('{ :app_url }api/admin/events', {
+                        friendlyName: this.friendlyName,
+                        description: JSON.stringify(this.editor.export())
+                    });
+                    this.showSaveModal = false;
+                    toastr.success('Saved')
+                    await this.loadSingleEvent(result.id)
+                },
+                saveUpdate: async function () {
+                    await $.patch(`{ :app_url }api/admin/events/${this.editId.id}`, {
+                        description: JSON.stringify(this.editor.export()),
+                        enabled: this.editId.enabled
+                    });
+                    toastr.success('Saved')
+                },
+                loadSingleEvent: async function (id) {
+                    if (!id) {
+                        this.editor.clear();
+                        this.editId = null;
+                        return;
+                    }
+                    const event = await $.get(`{ :app_url }api/admin/events/${id}`);
+                    this.editor.import(JSON.parse(event.description));
+                    this.editId = event;
+                    this.$nextTick(() => {
+                        this.triggerTriggerUpdate();
+                    });
+                },
+                enable: async function () {
+                    this.editId.enabled = 1;
+                    await this.saveUpdate();
+                },
+                disable: async function () {
+                    this.editId.enabled = 0;
+                    await this.saveUpdate();
+                },
+                deleteFlow: async function () {
+                    const result = await $.delete(`{ :app_url }api/admin/events/${this.editId.id}`)
+                    toastr.success('Deleted');
+                    this.editor.clear();
+                    this.editId = null;
+                    this.loadEvents();
+                },
+                exportJson: async function () {
+                    this.exportedJsonLink = "";
+                    this.showJsonExport = true;
+                    this.exportedJson = JSON.stringify(this.editor.export(), undefined, 2);
+
+                    const res = await $.post('https://api.pastes.dev/post', this.exportedJson);
+                    this.exportedJsonLink = "https://pastes.dev/" + res.key;
+                },
+                importFromJson: async function () {
+                    this.importJson = "";
+                    this.showJsonImport = true;
+                },
+                commitImportJson: function () {
+                    this.editor.import(JSON.parse(this.importJson));
+                    this.showJsonImport = false;
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin(),
+                importJsonIsValid: function () {
+                    if (this.importJson.trim() == "") return false;
+                    try {
+                        JSON.parse(this.importJson);
+                        return true
+                    } catch (e) {
+                        return false;
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

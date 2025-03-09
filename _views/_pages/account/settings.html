@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <form class="form-sample">
+                                        <p class="card-description">{ :m_notifications_text }</p>
+                                        <div class="row">
+                                            <div class="col-lg-3 col-12">
+                                                <div class="form-group row">
+                                                    <label class="form-check-label col-sm-10 col-form-label"
+                                                        for="notifications_tickets">
+                                                        <small>{ :m_notifications_tickets }</small>
+                                                    </label>
+                                                    <div class="col-sm-2">
+                                                        <input class="form-check-input form-control" type="checkbox"
+                                                            value="{ :notifications_tickets }" 
+                                                            { if :notifications_tickets }checked="{ :notifications_tickets }"
+                                                            { endif } id="notifications_tickets">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label class="form-check-label col-sm-10 col-form-label"
+                                                        for="notifications_servers">
+                                                        <small>{ :m_notifications_server }</small>
+                                                    </label>
+                                                    <div class="col-sm-2">
+                                                        <input class="form-check-input form-control" type="checkbox"
+                                                            value="{ :notifications_servers }" 
+                                                            { if :notifications_servers }checked="{ :notifications_servers }"
+                                                            { endif } id="notifications_servers">
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <label class="form-check-label col-sm-10 col-form-label"
+                                                        for="notifications_account">
+                                                        <small>{ :m_notifications_account }</small>
+                                                    </label>
+                                                    <div class="col-sm-2">
+                                                        <input class="form-check-input form-control" type="checkbox"
+                                                            value="{ :notifications_account }" 
+                                                            { if :notifications_account }checked="{ :notifications_account }"
+                                                            { endif } id="notifications_account">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <div class="row">
+                                            <div class="col-12 col-md-6">
+                                                <h5 class="card-title">{ :m_personal }</h5>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_first_name }</label>
+                                                            <div class="col-sm-9">
+                                                                <input type="text" class="form-control"
+                                                                    value="{ :user.username }" disabled>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">{ :m_gender }</label>
+                                                            <div class="col-sm-9">
+                                                                <select id="gender" class="form-control">
+                                                                    <option value="m">{ :m_gender_male }</option>
+                                                                    <option value="f">{ :m_gender_female }</option>
+                                                                    <option value="e">{ :m_gender_else }</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_birthday }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="birthday" class="form-control"
+                                                                    value="{ :address.birthday }"
+                                                                    placeholder="dd/mm/yyyy" type="date">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_phone }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="phone" class="form-control"
+                                                                    value="{ :address.phone }" type="tel">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_vat }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="vat" class="form-control"
+                                                                    value="{ :address.vatId }" type="text" maxlength="20">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <h5 class="card-title">{ :m_adress }</h5>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_address_1 }
+                                                            </label>
+                                                            <div class="col-sm-9">
+                                                                <input id="address1" type="text" class="form-control"
+                                                                    value="{ :address.address1 }">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_address_2 }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="address2" type="text" class="form-control"
+                                                                    value="{ :address.address2 }">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_zipcode }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="zipcode" type="text" class="form-control"
+                                                                    value="{ :address.zipcode }">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">{ :m_city }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="city" type="text" class="form-control"
+                                                                    value="{ :address.city }">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">{ :m_state }</label>
+                                                            <div class="col-sm-9">
+                                                                <input id="state" type="text" class="form-control"
+                                                                    value="{ :address.state }">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group row">
+                                                            <label class="col-sm-3 col-form-label">
+                                                                { :m_country }</label>
+                                                            <div class="col-sm-9">
+                                                                <select id="country" class="form-control">
+                                                                    <?php foreach (\Objects\Constants::COUNTRYS as $k => $v): ?>
+                                                                    <?php if ($k == $address['country']): ?>
+                                                                    <option selected value="{ :k }">{ :v }</option>
+                                                                    { else }
+                                                                    <option value="{ :k }">{ :v }</option>
+                                                                    { endif }
+                                                                    { endforeach }
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <br>
+                                                <button class="btn btn-success float-right" onclick="save();">
+                                                    { :m_save_btn }</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 grid-margin">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-md-6">
+                                            <h5 class="card-title">{ :m_changepw_btn }</h5>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">
+                                                            { :m_changepw_old }</label>
+                                                        <div class="col-sm-9">
+                                                            <input id="oldPassword" type="password" class="form-control"
+                                                                value="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-3 col-form-label">
+                                                            { :m_changepw_new }</label>
+                                                        <div class="col-sm-9">
+                                                            <input id="newPassword" type="password" class="form-control"
+                                                                value="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <button class="btn btn-warning float-right"
+                                                        onclick="changePassword();">
+                                                        { :m_changepw_btn }</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <h5 class="card-title">{ :m_twofa }</h5>
+                                            <p>{ :m_twofa_hint }</p>
+                                            <p>{ :m_2fa_status }:
+                                                <b>
+                                                    <?= $user['twofaEnabled'] ? $m_twofa_enabled . " " . \Objects\Formatters::formatDateAbsolute($user['twofaEnabled']) : $m_twofa_disabled ?>
+                                                </b>
+                                            </p>
+                                            <?php if (!$user['twofaEnabled']): ?>
+                                            <button class="btn btn-secondary" @click="enable2FA()">
+                                                { :m_enable_2fa }
+                                            </button>
+                                            <?php endif ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <Modal :show="show2FaModal" @hide="show2FaModal= false" :title="`2FA`"
+                        close-text="{ :m_close_btn }">
+                        <template #body>
+                            <div class="row">
+                                <div class="col-12 text-center">
+                                    <p>{ :m_2fa_scan_now }</p>
+                                    <img :src="twofaimage" alt="">
+                                    <p>{ :m_2fa_scan_secret }: <b>{{ twofasecret }}</b></p>
+                                    <hr>
+                                    <p>{ :m_2fa_scan_confirm }</p>
+                                    <div class="row justify-content-center my-4 h3">
+                                        <input class="w-50 otp-inp p-2 text-center form-control mx-1" type="text"
+                                            maxlength="6" autocomplete="off" pattern="\d+" v-model="validationInput">
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template #footer>
+                            <button type="button" class="btn btn-primary" id="saveBtn" @click="verify2FA()">
+                                { :m_save }
+                        </template>
+                    </Modal>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12" id="thanks">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_done }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- checkmark -->
+                        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="successMessage">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12" id="thanks">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_error }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- failed -->
+                        <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                            <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                            <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                            <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="errorMessage">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script type="module">
+        import Modal from '{ :app_url }js/components/modal.js'
+
+        var app = new Vue({
+            components: {
+                Modal,
+            },
+            el: '#app',
+            data: {
+                show2FaModal: false,
+                twofaimage: null,
+                twofasecret: null,
+                validationInput: ""
+            },
+            methods: {
+                enable2FA: async function () {
+                    const data = await $.get(`${app_url}api/request-2fa`);
+                    this.show2FaModal = true;
+                    this.twofaimage = data.image;
+                    this.twofasecret = data.secret;
+                },
+                verify2FA: async function () {
+                    const result = await $.post(`${app_url}api/save-2fa`, {
+                        code: this.validationInput
+                    });
+                    if (result.success) {
+                        toastr.success('{ :m_saved }')
+                        this.show2FaModal = false;
+                    } else {
+                        this.validationInput = "";
+                        toastr.error('{ :m_2fa_scan_failed }')
+                    }
+                }
+            },
+            watch: {
+                validationInput: {
+                    handler(value, old) {
+                        if (value.length === 6) this.verify2FA()
+                    }
+                }
+            }
+        });
+
+    </script>
+    <script>
+        const save = () => {
+            event.preventDefault();
+            $.post('{ :app_url }api/address/save', {
+                'gender': $('#gender').val(),
+                'birthday': $('#birthday').val(),
+                'address1': $('#address1').val(),
+                'address2': $('#address2').val(),
+                'state': $('#state').val(),
+                'zipcode': $('#zipcode').val(),
+                'city': $('#city').val(),
+                'country': $('#country').val(),
+                'phone': $("#phone").val(),
+                'vatId': $("#vat").val()
+            }, (data) => {
+                toastr.success("{ :m_saved }")
+            });
+        }
+
+        $(() => {
+            $("input[type='checkbox']").on('change', (e) => {
+                $.post('{ :app_url }api/notifications/toggle', {
+                    type: $(e.target).attr('id').replace('notifications_', ''),
+                    status: $(e.target).prop('checked')
+                }, (data) => {
+                    toastr.success("{ :m_notifications_saved }")
+                });
+            })
+        })
+
+        const changePassword = () => {
+            event.preventDefault();
+            $.post('{ :app_url }api/change-password', {
+                old: $("#oldPassword").val(),
+                new: $("#newPassword").val()
+            }, (data) => {
+                console.log(data);
+                if (data.error) {
+                    $("#errorModal").modal("show");
+                    $("#errorMessage").html("{ :m_changepw_err }");
+                } else {
+                    $("#successModal").modal("show");
+                    $("#successMessage").html("{ :m_changepw_done }");
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

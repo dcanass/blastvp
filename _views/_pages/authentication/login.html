@@ -1,0 +1,282 @@
+<?php
+$languages_available = \Module\BaseModule\Controllers\Admin\Settings::getConfigEntry("ENABLED_LANGUAGES", \Controllers\Panel::getLanguage()->getListOfLanguages(true));
+$current_language = \Controllers\Panel::getLanguage()->getCurrentLanguage();
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_btn }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <style>
+        .page-body-wrapper {
+            padding-top: 0px;
+        }
+    </style>
+    <style>
+        <?php echo Module\BaseModule\Controllers\Admin\Settings::getConfigEntry("CUSTOM_STYLE", "");
+        ?>
+    </style>
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <div class="container-fluid page-body-wrapper full-page-wrapper auth-page">
+            <div class="content-wrapper d-flex align-items-center auth auth-bg-1 theme-one">
+                <?php if (sizeof($languages_available) > 1): ?>
+                <div class="row" style="position: absolute; top: 15px; right: 15px">
+                    <a class="nav-item dropdown d-inline-block">
+                        <a class="nav-link " id="LanguageDropdown" href="#" data-toggle="dropdown"
+                            aria-expanded="false">
+                            <img class="img-xs rounded-circle" src="{ :app_url }images/4x3/{ :current_language }.svg"
+                                alt="Profile image">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown" style="padding-bottom: 0px; "
+                            aria-labelledby="LanguageDropdown">
+
+                            <div class="d-flex">
+                                { foreach :language in :languages_available }
+                                <div class="py-3 px-4 d-flex align-items-center justify-content-center">
+                                    <img src="{ :app_url }images/4x3/{ :language }.svg" class="img-xs rounded-circle"
+                                        alt="" style="cursor: pointer;" onclick="changeLanguage('{ :language }')">
+                                </div>
+                                { endforeach }
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                { endif }
+                <div class="row w-100">
+                    <div class="col-lg-4 mx-auto">
+                        <div class="auto-form-wrapper">
+                            <div id="error-part">
+                                { if :confirmation_message }
+                                <div class="alert alert-success" role="alert">{ :confirmation_message }</div>
+                                { endif }
+                            </div>
+                            <div id="login-part" style="display: block;">
+                                <div class="form-group">
+                                    <label class="label">{ :m_email }</label>
+                                    <div class="input-group">
+                                        <input id="email" type="text" value="{ :prefill_email }" class="form-control"
+                                            placeholder="{ :m_email }">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="mdi mdi-check-circle-outline"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="label">{ :m_password }</label>
+                                    <div class="input-group">
+                                        <input id="password" type="password" class="form-control"
+                                            placeholder="*********">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="mdi mdi-check-circle-outline"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="reset-token" value="{ :resetToken }">
+                                <div class="form-group">
+                                    { if :isReset }
+                                    <button onclick="resetPassword()" class="btn btn-primary submit-btn btn-block">
+                                        { :m_reset }</button>
+                                    { else }
+                                    <button onclick="login()" class="btn btn-primary submit-btn btn-block">
+                                        { :m_btn }</button>
+                                    { endif }
+                                </div>
+                            </div>
+                            <div id="2fa-part" style="display: none;">
+                                <div class="form-group">
+                                    <h3 class="text-center">{ :m_2fa }</h3>
+                                    <div class="form-group text-center">
+                                        <label class="label">{ :m_2fa_hint }</label>
+                                        <div class="row justify-content-center my-4 h3">
+                                            <input class="w-50 otp-inp p-2 text-center form-control mx-1" type="text"
+                                                maxlength="6" autocomplete="off" pattern="\d+" id="validationInput"
+                                                placeholder="654321">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <button onclick="login()" class="btn btn-primary submit-btn btn-block">
+                                            { :m_btn }</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="reset-part" style="display: none;">
+                                <div class="form-group">
+                                    <label class="label">{ :m_email }</label>
+                                    <div class="input-group">
+                                        <input onchange="$('#reset-btn').removeAttr('disabled')" id="reset-email"
+                                            type="text" value="{ :prefill_email }" class="form-control"
+                                            placeholder="{ :m_email }">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">
+                                                <i class="mdi mdi-check-circle-outline"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button onclick="forgotPasswordPost()" id="reset-btn"
+                                        class="btn btn-primary submit-btn btn-block">
+                                        { :m_request_reset }</button>
+                                </div>
+                            </div>
+                            { if :registration_active }
+                            <div class="text-block text-center my-3">
+                                <span class="text-small font-weight-semibold">{ :m_no_acc }</span>
+                            </div>
+                            { endif }
+                            <div class="text-block text-center my-3">
+                                <a style="cursor: pointer;" onclick="forgotPassword()"
+                                    class="text-small font-weight-semibold">{ :m_forgot }</a>
+                            </div>
+                            <div class="text-block text-center my-3">
+                                <span class="text-small font-weight-semibold">{ if :terms }<a target="_blank"
+                                        href="{ :terms }">ToS</a>{ endif }
+                                    <?= ($terms && $help) ? " | " : "" ?>
+                                    { if :help }<a target="_blank" href="{ :help }">Support</a>
+                                </span>{ endif }
+                            </div>
+                        </div>
+                        <ul class="auth-footer"></ul>
+                        <p class="footer-text text-center">copyright © 2018 Bootstrapdash & <a
+                                href="https://bennetgallein.de">Bennet Gallein</a>. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- content-wrapper ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <script>
+        let registerButton = document.getElementById("login");
+
+        const login = (code = null) => {
+            $.post('{ :app_url }login', {
+                email: $("#email").val(),
+                password: $("#password").val(),
+                code
+            }, (response) => {
+                if (response.twoRequired) {
+                    $("#login-part").hide();
+                    $("#2fa-part").show();
+                    $(".otp-inp").first().focus()
+                    return;
+                }
+                if (response.error === true) {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-danger" role="alert">' + response.msg + '</div>';
+                    $("#validationInput").val("");
+                } else {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-success" role="alert">' + response.msg + '</div>';
+                    setTimeout(() => {
+                        window.location.href = "{ :app_url }dashboard";
+                    }, 1500);
+                }
+            });
+
+            return false;
+        }
+
+
+        const forgotPassword = () => {
+            // hide everything else
+            $("#login-part").hide();
+            $("#2fa-part").hide();
+            $("#reset-part").show();
+        }
+
+        const forgotPasswordPost = () => {
+            const email = $("#reset-email").val();
+            $('#reset-btn').attr('disabled', 'disabled');
+
+            $.post('{ :app_url }api/forgot-password', { email }, (data) => {
+                if (data.error === true) {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-danger" role="alert">' + data.message + '</div>';
+                } else {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-success" role="alert">' + data.message + '</div>';
+                }
+            });
+        }
+
+        const resetPassword = () => {
+            const token = $("#reset-token").val();
+            const password = $("#password").val();
+
+            $.post('{ :app_url }api/reset-password', { token, password }, (data) => {
+                if (data.error === true) {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-danger" role="alert">' + data.message + '</div>';
+                } else {
+                    document.getElementById("error-part").innerHTML = "";
+                    document.getElementById("error-part").innerHTML =
+                        '<div class="alert alert-success" role="alert">' + data.message + '</div>';
+                }
+            });
+        }
+
+        $(".otp-inp").on('input', (event) => {
+            let target = $(event.currentTarget);
+            let code = target.val();
+            if (code.length === 6) {
+                login(code);
+            }
+        });
+
+        $(document).on('keydown', (evt) => {
+            var keyCode = evt ? (evt.which ? evt.which : evt.keyCode) : event.keyCode;
+            if (keyCode == 13) {
+                login()
+            }
+        });
+
+        const changeLanguage = (language) => {
+            $.get('{ :app_url }api/settings/language/' + language, () => {
+                window.location.reload();
+            });
+        }
+
+    </script>
+</body>
+
+</html>

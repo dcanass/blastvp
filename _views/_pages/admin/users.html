@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <p class="card-description">
+                                        { :m_desc }
+                                        <button class="float-right btn btn-primary" data-target="#addUserModal"
+                                            data-toggle="modal"><i class="mdi mdi-plus"></i>
+                                            { :m_create }</button>
+                                        <button @click="downloadCsv" class="btn float-right mr-2"> <i
+                                                class="mdi mdi-file-export-outline"></i>
+                                            { :m_export_csv }</button>
+                                    </p>
+                                    <div class="table-responsive">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            { :m_tbl_1 }
+                                                        </th>
+                                                        <th>
+                                                            { :m_tbl_2 }
+                                                        </th>
+                                                        <th>
+                                                            { :m_tbl_3 }
+                                                        </th>
+                                                        <th>
+                                                            { :m_tbl_4 }
+                                                        </th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr @click="goTo(user.id)" class="clickable-row"
+                                                        v-for="user in users" :key="user.id">
+                                                        <td>
+                                                            {{user.id}}
+                                                        </td>
+                                                        <td>
+                                                            {{user.username}}
+                                                        </td>
+                                                        <td>
+                                                            {{user.email}}
+                                                        </td>
+                                                        <td>
+                                                            {{user.registerFormatted}}
+                                                        </td>
+                                                        <td><i v-if="isAdmin" @click="loginAsUser($event, user.id)"
+                                                                class="mdi mdi-login"></i></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <div class="modal fade" id="addUserModal" data-action="" data-id="" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title font-weight-bold" id="modalTitle">{ :m_create }</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3 mx-0 ">
+                        <p>{ :m_create_info }</p>
+                    </div>
+
+                    <div class="row mb-3 mx-0" style="display: none;">
+                        <div class="col-12 alert alert-warning" id="createAlert">E-Mail ist bereit vergeben</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="createName">{ :m_create_name }</label>
+                        <input type="text" id="createName" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="createEmail">{ :m_create_mail }</label>
+                        <input type="text" id="createEmail" class="form-control">
+                    </div>
+                    <div class="form-group" style="display: none;">
+                        <label for="createPassword" class="form-label">{ :m_create_password }</label>
+                        <input type="text" id="createPassword" class="form-control" disabled value="ASD">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary mr-auto" data-dismiss="modal">
+                        { :m_close_btn }</button>
+                    <button type="button" class="btn btn-success" id="saveBtn" onclick="createUser()">
+                        { :m_create }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+    <script type="module">
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/popover.js'
+        import Modal from '{ :app_url }js/components/modal.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        var app = new Vue({
+            el: "#app",
+            data: {
+                users: []
+            },
+            created: async function () {
+                await this.loadData();
+            },
+            methods: {
+                loadData: async function () {
+                    const users = await $.get('{ :app_url }api/admin/users');
+                    this.users = users;
+                },
+                loginAsUser: async function (event, id) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const data = await $.post('{ :app_url }api/admin/login-as/' + id);
+                    if (!data.error) {
+                        window.location = "{ :app_url }dashboard";
+                    }
+                },
+                goTo: function (id) {
+                    window.location = `{ :app_url }admin/users/${id}`;
+                },
+                downloadCsv: function () {
+                    let csv = 'id,username,email,permission,register,registerFormatted\n';
+
+                    this.users.forEach((row) => {
+                        csv += `${row.id},${row.username},${row.email},${row.permission},${row.register},${row.registerFormatted}`;
+                        csv += "\n";
+                    });
+
+                    const anchor = document.createElement('a');
+                    anchor.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+                    anchor.target = '_blank';
+                    const ids = this.users.map(e => e.id);
+                    const minId = Math.min(...ids);
+                    const maxId = Math.max(...ids);
+                    anchor.download = `invoice-export-${minId}-${maxId}.csv`;
+                    anchor.click();
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin()
+            }
+        })
+    </script>
+
+    <script>
+        const createUser = () => {
+            const name = $("#createName").val();
+            const email = $("#createEmail").val();
+
+            const alert = $("#createAlert");
+            const password = $("#createPassword");
+
+            $.post('{ :app_url }admin/users', {
+                name,
+                email
+            }, (data) => {
+                console.log(data);
+                alert.html(data.message).parent().show();
+                if (data.error) {
+                    alert.addClass("alert-warning").removeClass('alert-success');
+                    password.parent().hide();
+                } else {
+                    alert.addClass("alert-success").removeClass('alert-warning');
+                    password.val(data.password);
+                    password.parent().show();
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

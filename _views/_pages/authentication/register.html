@@ -1,0 +1,254 @@
+<?php
+$languages_available = \Module\BaseModule\Controllers\Admin\Settings::getConfigEntry("ENABLED_LANGUAGES", \Controllers\Panel::getLanguage()->getListOfLanguages(true));
+$current_language = \Controllers\Panel::getLanguage()->getCurrentLanguage();
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{ :PAGE_TITLE } - { :m_register }</title>
+  <!-- plugins:css -->
+  { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+  { css vendors/css/vendor.bundle.base.css }
+  { css vendors/css/vendor.bundle.addons.css }
+  <!-- endinject -->
+  <!-- plugin css for this page -->
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <?php if ($STYLE == "dark"): ?>
+  { css css/dark.css }
+  { else }
+  { css css/style.css }
+  { endif }
+  { js vendors/js/vendor.bundle.base.js }
+
+  <style>
+    #cf-turnstile iframe {
+      margin: 0 auto;
+    }
+  </style>
+  <style>
+    <?php echo Module\BaseModule\Controllers\Admin\Settings::getConfigEntry("CUSTOM_STYLE", "");
+    ?>
+  </style>
+  <!-- endinject -->
+  <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+  <div class="container-scroller">
+    <div class="container-fluid page-body-wrapper full-page-wrapper auth-page">
+      <div class="content-wrapper d-flex align-items-center auth register-bg-1 theme-one">
+        <?php if (sizeof($languages_available) > 1): ?>
+        <div class="row" style="position: absolute; top: 15px; right: 15px">
+          <a class="nav-item dropdown d-inline-block">
+            <a class="nav-link " id="LanguageDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+              <img class="img-xs rounded-circle" src="{ :app_url }images/4x3/{ :current_language }.svg"
+                alt="Profile image">
+            </a>
+            <div class="dropdown-menu dropdown-menu-right navbar-dropdown" style="padding-bottom: 0px; "
+              aria-labelledby="LanguageDropdown">
+
+              <div class="d-flex">
+                { foreach :language in :languages_available }
+                <div class="py-3 px-4 d-flex align-items-center justify-content-center">
+                  <img src="{ :app_url }images/4x3/{ :language }.svg" class="img-xs rounded-circle" alt=""
+                    style="cursor: pointer;" onclick="changeLanguage('{ :language }')">
+                </div>
+                { endforeach }
+              </div>
+            </div>
+          </a>
+        </div>
+        { endif }
+        <div class="row w-100">
+          <div class="col-lg-4 mx-auto">
+            <h2 class="text-center mb-4">{ :m_title }</h2>
+            <div class="auto-form-wrapper">
+              <div id="error-part"></div>
+              <div class="form-group">
+                <div class="input-group">
+                  <input id="first-name" type="text" class="form-control" placeholder="{ :m_first_name }">
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i class="mdi mdi-check-circle-outline"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <input id="last-name" type="text" class="form-control" placeholder="{ :m_last_name }">
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i class="mdi mdi-check-circle-outline"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <input id="email" type="text" class="form-control" placeholder="{ :m_email }">
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i class="mdi mdi-check-circle-outline"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <input id="password" type="password" class="form-control" placeholder="{ :m_password }">
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i class="mdi mdi-check-circle-outline"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="input-group">
+                  <input id="confirm-password" type="password" class="form-control" placeholder="{ :m_c_password }">
+                  <div class="input-group-append">
+                    <span class="input-group-text">
+                      <i class="mdi mdi-check-circle-outline"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group d-flex justify-content-center">
+                <div class="form-check form-check-flat mt-0">
+                  <label class="form-check-label">
+                    <input id="tos" type="checkbox" class="form-check-input"> { :m_terms }
+                  </label>
+                </div>
+              </div>
+              <?php if ($captcha_provider == "cloudflare_turnstile"): ?>
+              <div class="form-group text-center">
+                <div class="cf-turnstile" data-sitekey="{ :captcha_public }" data-callback="javascriptCallback">
+                </div>
+              </div>
+              { endif }
+              <div class="form-group">
+                <button onclick="register()" class="btn btn-primary submit-btn btn-block">{ :m_register }</button>
+              </div>
+              <div class="text-block text-center my-3">
+                <span class="text-small font-weight-semibold">{ :m_already_acc }</span>
+              </div>
+              <div class="text-block text-center my-3">
+                <span class="text-small font-weight-semibold">{ if :terms }<a target="_blank" href="{ :terms }">ToS</a>
+                  { endif }
+                  <?= ($terms && $help) ? " | " : "" ?>
+                  { if :help }<a target="_blank" href="{ :help }">Support</a>
+                </span>{ endif }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- content-wrapper ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+  <!-- plugins:js -->
+  { js vendors/js/vendor.bundle.addons.js }
+  <!-- endinject -->
+  <!-- inject:js -->
+  { js js/off-canvas.js }
+  { js js/misc.js }
+  <script>
+    async function getToken() {
+      return null
+    }
+
+    function errorHook() { }
+  </script>
+  <?php if ($captcha_provider == "google_v3"): ?>
+  <script src="https://www.google.com/recaptcha/api.js?render={ :captcha_public }"></script>
+  <script>
+    async function getToken() {
+      const token = await grecaptcha.execute('{ :captcha_public }', {
+        action: 'submit'
+      });
+      return token;
+    }
+
+    function errorHook() {
+      grecaptcha.reset()
+    }
+  </script>
+  { endif }
+  <?php if ($captcha_provider == "google_enterprise"): ?>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render={ :captcha_public }"></script>
+  <script>
+    async function getToken() {
+      const token = await grecaptcha.enterprise.execute('{ :captcha_public }', {
+        action: 'submit'
+      });
+      return token;
+    }
+
+    function errorHook() {
+      grecaptcha.enterprise.reset()
+    }
+  </script>
+  { endif }
+  <?php if ($captcha_provider == "cloudflare_turnstile"): ?>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script>
+    async function getToken() {
+      const token = turnstile.getResponse();
+      return token;
+    }
+
+    function errorHook() {
+      turnstile.reset()
+    }
+  </script>
+  { endif }
+  <!-- endinject -->
+  <script>
+    let toggled = false;
+
+    const register = async () => {
+
+      const token = await this.getToken();
+
+      $.post('{ :app_url }register', {
+        email: $("#email").val(),
+        password: $("#password").val(),
+        confirm: $("#confirm-password").val(),
+        firstname: $("#first-name").val(),
+        lastname: $("#last-name").val(),
+        tos: toggled,
+        token
+      }, (response) => {
+        if (response.error === true) {
+          $("#error-part").html('<div class="alert alert-danger" role="alert">' +
+            response.msg + '</div>');
+          errorHook();
+        } else {
+          $("#error-part").html('<div class="alert alert-success" role="alert">' +
+            response.msg + '</div>');
+        }
+      });
+
+    }
+
+    document.getElementById('tos').addEventListener('click', (event) => {
+      toggled = !toggled
+    });
+
+    const changeLanguage = (language) => {
+      $.get('{ :app_url }api/settings/language/' + language, () => {
+        window.location.reload();
+      });
+    }
+  </script>
+</body>
+
+</html>

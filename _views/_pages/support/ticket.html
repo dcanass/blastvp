@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } -
+        <?= $ticket->title ?>
+    </title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <style>
+        .messages {
+            height: auto;
+            min-height: calc(100% - 93px);
+            max-height: calc(100% - 93px);
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+
+        @media screen and (max-width: 735px) {
+            .messages {
+                max-height: calc(100% - 105px);
+            }
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 8px;
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .messages div {
+            display: inline-block;
+            clear: both;
+            margin: 15px 15px 5px 15px;
+            width: calc(100% - 25px);
+            font-size: 0.9em;
+        }
+
+        .messages div:nth-last-child(1) {
+            margin-bottom: 20px;
+        }
+
+        .messages div img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .messages div.replies div div {
+            background: var(--dark);
+            color: #f5f5f5;
+        }
+
+        .messages div.sent div div {
+            background: var(--light);
+        }
+        
+        .messages div.sent div div p {
+            color: var(--dark);
+        }
+
+        .messages div.replies div div {
+            border-top-right-radius: 0px !important;
+        }
+
+        .messages div.sent div div {
+            border-top-left-radius: 0px !important;
+        }
+
+        .messages div div p,small {
+            padding: 10px;
+        }
+
+        .message-input {
+            bottom: 0;
+            min-width: 100%;
+            max-width: 100%;
+            z-index: 99;
+        }
+
+        .message-input .wrap {
+            position: relative;
+        }
+
+        .message-input .wrap input {
+            float: left;
+            border: none;
+            width: calc(100% - 90px);
+            padding: 11px 32px 10px 8px;
+            font-size: 0.8em;
+            color: #32465a;
+        }
+
+        @media screen and (max-width: 735px) {
+            .message-input .wrap input {
+                padding: 15px 32px 16px 8px;
+            }
+        }
+
+        .message-input .wrap input:focus {
+            outline: none;
+        }
+
+        .message-input .wrap button {
+            float: right;
+            border: none;
+            width: 50px;
+            padding: 12px 0;
+            cursor: pointer;
+            background: #32465a;
+            color: #f5f5f5;
+        }
+
+        @media screen and (max-width: 735px) {
+            .message-input .wrap button {
+                padding: 16px 0;
+            }
+        }
+
+        .message-input .wrap button:hover {
+            background: #435f7a;
+        }
+
+        .message-input .wrap button:focus {
+            outline: none;
+        }
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            /* top: 100%; */
+            bottom: 100%;
+            left: 0;
+            right: 0;
+        }
+
+        .autocomplete-items li {
+            cursor: pointer;
+        }
+
+        .autocomplete .submit {
+            position: absolute;
+            top: 12px;
+            right: 25px;
+        }
+
+        .hover-underline:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper" id="app">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>
+                                        <?= $ticket->title ?> [<a href="#">#<?= $ticket->id; ?></a>]
+                                    </h4>
+                                    <div class="messages">
+                                        <div v-for="m in messages" class="d-flex justify-content-start align-items-start" :class="{ [m.pos]: true }">
+                                            <img v-if="m.pos === 'sent'" :src="m.author.profilePicture" class="rounded-circle" alt="Profile Picture">
+                                            <div class="text-end me-3">
+                                                <div class=" p-2 rounded">
+                                                    <p class="mb-1" style="white-space: pre-wrap;">{{ m.message }}</p>
+                                                    <small class="text-muted">{{ m.author.name }} - {{m.createdAt | formatDate }}</small>
+                                                </div>
+                                            </div>
+                                            <img v-if="m.pos === 'replies'" :src="m.author.profilePicture" class="rounded-circle" alt="Profile Picture">
+                                        </div>
+
+                                    </div>
+                                    <div class="message-input" v-if="!loading">
+                                        <div class="wrap row align-items-center">
+                                            <h4 class="ml-3">{ :m_answer }</h4>
+                                            <div class="col-12 autocomplete">
+                                                <ul v-if="autocompleteValues.length > 0 && (isAdmin || isSupporter)"
+                                                    class="autocomplete-items list-group">
+                                                    <li v-for="au in autocompleteValues" class="p-2 list-group-item"
+                                                        @click="insertTemplate(au)">
+                                                        <span>
+                                                            {{au.friendlyName}} (<code>/{{au.command}}</code>)
+                                                        </span>
+                                                    </li>
+                                                </ul>
+                                                <textarea style="resize: vertical" v-model.trim="inp" id="message"
+                                                    rows="15" ref="ta" class="form-control border"></textarea>
+                                                <small v-if="(isAdmin || isSupporter) && templates.length > 0"><i
+                                                        class="mdi mdi-information-outline"></i> { :m_templating_available }</small>
+                                                <button onclick="submitAnswer();" class="submit"><span
+                                                        class="mdi mdi-send" aria-hidden="true"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <Spinner />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>{ :m_ticket_information }</h4>
+                                    <br>
+                                    <p v-if="isAdmin"><b>{ :m_customer }: </b>
+                                        <span @click="gotoUser('<?= ((array) $ticket)['user']->getId(); ?>')" class="hover-underline"><?= ((array) $ticket)['user']->getName(); ?></span></p>
+                                    <p><b>{ :m_ticket_status }: </b>
+                                        <?= $ticket->status; ?>
+                                    </p>
+                                    <p><b>{ :m_ticket_opened }: </b>
+                                        <?= $ticket->createdAt; ?>
+                                    </p>
+                                    <p><b>{ :m_ticket_title }: </b>
+                                        <?= $ticket->title; ?>
+                                    </p>
+                                    <p><b>{ :m_ticket_priority }: </b>
+                                        <?= $ticket->priority; ?>
+                                    </p>
+                                    <p><b>{ :m_ticket_product }: </b>
+                                       <span 
+                                        :class="{'hover-underline': '<?= $ticket->productId; ?>' !== '0'}" 
+                                        @click="goTo('<?= $ticket->productId; ?>')"> <?= $ticket->product; ?></span>
+                                    </p>
+                                    <br>
+                                    <?php if ($ticket->_status == 0): ?>
+                                    <button @click="closeTicket" class="btn btn-danger grid-margin">{ :m_btn_close }</button>
+                                    { else }
+                                    <button @click="reopenTicket" id="reopenBtn" class="btn btn-warning grid-margin">
+                                        { :m_btn_reopen }</button>
+                                    { endif }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="col-md-12 col-12" id="thanks">
+                    <div class="row m-0 p-2">
+                        <h1 class="text-grey font-weight-bold text-center w-100 pt-3">{ :m_error }</h1>
+                    </div>
+                    <div class="row m-0 p-0">
+                        <!-- failed -->
+                        <svg class="failed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                            <circle class="failed__circle" cx="25" cy="25" r="25" fill="none" />
+                            <line x1="15" y1="15" x2="35" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                            <line x1="35" y1="15" x2="15" y2="35" stroke="#fff" stroke-width="2.5"
+                                stroke-linecap="round" stroke-miterlimit="10"></line>
+                        </svg>
+                    </div>
+                    <div class="row m-0 mt-3 p-2">
+                        <p class="w-100 text-grey text-center font-weight-bold" id="errorMessage">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script type="module">
+        import Spinner from '{ :app_url }js/components/spinner.js'
+        import { ACL } from '{ :app_url }js/acl.js'
+        import '{ :app_url }js/components/tooltip.js'
+        import '{ :app_url }js/components/filters.js'
+        window.ACL = ACL.init(JSON.parse('<?= json_encode($__USER); ?>'))
+
+        var app = new Vue({
+            components: {
+                Spinner
+            },
+            el: '#app',
+            data: {
+                ticketId: '<?= $ticket->id; ?>',
+                loading: false,
+                messages: [],
+                templates: [],
+                inp: "",
+                isMounted: false
+            },
+            created: async function () {
+                await this.load();
+            },
+            mounted() {
+                this.isMounted = true
+            },
+            methods: {
+                load: async function () {
+                    this.loading = true;
+                    const messages = await $.get(`${app_url}api/tickets/${this.ticketId}`);
+                    this.messages = messages;
+                    this.loading = false;
+                    this.templates = await $.get(`${app_url}api/support/templates`);
+                },
+                insertTemplate: function (template) {
+                    const cursorPosition = this.$refs.ta.selectionStart
+
+                    let startIndex = this.inp.lastIndexOf('/', cursorPosition);
+
+                    // Find the end of the "/test" substring
+                    let endIndex = this.inp.indexOf(' ', startIndex);
+                    if (endIndex === -1) {
+                        endIndex = this.inp.length; // If no space found, go to the end of the string
+                    }
+                    this.inp = this.inp.slice(0, startIndex) + template.body + this.inp.slice(endIndex);
+                },
+                closeTicket: async function() {
+                    const prom = await $.get(`${app_url}api/ticket/close/${this.ticketId}`);
+                    window.location.reload();
+                },
+                reopenTicket: async function() {
+                    const prom = await $.get(`${app_url}api/ticket/reopen/${this.ticketId}`);
+                    window.location.reload();
+                },
+                goTo: function(id) {
+                    window.location = `${app_url}server/${id}`;
+                },
+                gotoUser: function(id) {
+                    window.location = `${app_url}admin/users/${id}`;
+                }
+            },
+            computed: {
+                ...window.ACL.ACLMixin(),
+                autocompleteValues: function () {
+                    this.inp;
+                    if (!this.isMounted || this.loading) return [];
+                    if (this.$refs.ta) {
+                        const transformed = this.inp.replace(/\n/g, " ");
+                        const cursorPosition = this.$refs.ta.selectionStart
+                        let startIndex = transformed.lastIndexOf('/', cursorPosition);
+
+                        if (startIndex === -1) {
+                        } else {
+                            // Find the end of the substring (either the next space or end of the string)
+                            let endIndex = transformed.indexOf(' ', startIndex);
+                            if (endIndex === -1) {
+                                endIndex = transformed.length; // If no space found, assume end of the string
+                            }
+                            if (cursorPosition <= endIndex) {
+                                // Extract the substring starting with '/'
+                                let substring = transformed.slice(startIndex + 1, endIndex);
+                                
+                                return this.templates.filter(su => su.command.startsWith(substring));
+                            }
+                        }
+                    }
+                    return []
+                }
+            }
+        });
+    </script>
+
+    <script>
+        const submitAnswer = () => {
+            let message = $('#message').val();
+            $.post('{ :app_url }api/ticket/answer', {
+                ticketid: "<?= $ticket->id; ?>",
+                message
+            }, (data) => {
+                if (data.error) {
+                    $("#errorModal").modal('show');
+                    $("#errorMessage").html(data.text)
+                } else {
+                    window.location.reload();
+                }
+            })
+        };
+    </script>
+</body>
+
+</html>

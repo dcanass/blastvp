@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+{ css css/dark.css }
+{ else }
+{ css css/style.css }
+{ endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png"/>
+</head>
+
+<body>
+<div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    { include("_views/partials/_navbar.html") }
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+        <!-- partial:partials/_sidebar.html -->
+        { include("_views/partials/_sidebar.html") }
+        <!-- partial -->
+        <div class="main-panel">
+            <div class="content-wrapper">
+                <div class="row">
+                    <div class="col-lg-12 grid-margin stretch-card">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">{ :m_title }</h4>
+                                <p class="card-description">
+                                    { :m_subtitle }
+                                </p>
+                                <p class="card-description">
+                                    { :m_calc_exp }<br> 
+                                    <code>
+                                        x = amount users enters.<br>
+                                        price = baseprice + ((x / step length) * price for each extra)
+                                        <br>
+                                        example:<br>
+                                        x = 4 cores;<br>
+                                        baseprice = 3.20<br>
+                                        step length = 1<br>
+                                        price for each extra core = 1<br>
+                                        price = 3.20 + ((4 / 1) * 1) = 7.20
+                                    </code>
+                                </p>
+                                <hr>
+                                <form class="form-sample">
+                                    <p>{ :m_general }</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_ipam_prio }
+                                                    <i class="mdi mdi-information-outline" data-toggle="tooltip" data-placement="top" title="{ :m_ipam_prio_description }"></i>
+                                                </label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="o_ipam_priority" value="{ :O_IPAM_PRIORITY }">
+                                                        <option <?= $O_IPAM_PRIORITY == "GLOBAL" ? "selected='selected'" : "" ?> value="GLOBAL">{ :m_add_global }</option>
+                                                        <option <?= $O_IPAM_PRIORITY == "NODE" ? "selected='selected'" : "" ?> value="NODE">{ :m_add_node }</option>
+                                                        <option <?= $O_IPAM_PRIORITY == "USER" ? "selected='selected'" : "" ?> value="USER">{ :m_add_user }</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_ipam_distribution }
+                                                    <i class="mdi mdi-information-outline" data-toggle="tooltip" data-placement="top" title="{ :m_ipam_distribution_description }"></i>
+                                                </label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="o_ipam_balance" selected="{ :O_IPAM_BALANCE }">
+                                                        <option <?= $O_IPAM_BALANCE == "FILL" ? "selected='selected'" : "" ?> value="FILL">{ :m_ipam_distribution_fill }</option>
+                                                        <option <?= $O_IPAM_BALANCE == "BALANCE" ? "selected='selected'" : "" ?> value="BALANCE">{ :m_ipam_distribution_balance }</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_ipam_deployment }
+                                                    <i class="mdi mdi-information-outline" data-toggle="tooltip" data-placement="top" title="{ :m_ipam_deployment_description }"></i>
+                                                </label>
+                                                <div class="col-sm-9">
+                                                    <select class="form-control" id="o_ipam_deployment" selected="{ :O_IPAM_DEPLOYMENT }">
+                                                        <?php foreach (\Module\BaseModule\Controllers\IPAM\IPAM::$DEP_OPTIONS as $k => $v): ?>
+                                                        <option <?= $O_IPAM_DEPLOYMENT == $k ? "selected='selected'" : "" ?> value="{ :k }"><?= ${$v['lang']} ?></option>
+                                                        { endforeach }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_settings_fail_when_no_usernet }</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :O_IPAM_FAIL_NO_USERNET }" { if :O_IPAM_FAIL_NO_USERNET }checked="{ :O_IPAM_FAIL_NO_USERNET }"{ endif } id="o_ipam_fail_no_usernet">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_settings_interface_speed }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" id="o_interface_speed" value="{ :O_INTERFACE_SPEED }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_settings_interpolate_ram }</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :O_INTERPOLATE_RAM }" { if :O_INTERPOLATE_RAM }checked="{ :O_INTERPOLATE_RAM }"{ endif } id="o_interpolate_ram">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_settings_average_time }</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :O_CREATION_TIME }" { if :O_CREATION_TIME }checked="{ :O_CREATION_TIME }"{ endif } id="o_creation_time">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_delete_suspended_servers_after_days }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_delete_suspended" value="{ :O_DELETE_SUSPENDED }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_settings_disable_configurator }</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :O_DISABLE_FREE_ORDER }" { if :O_DISABLE_FREE_ORDER }checked="{ :O_DISABLE_FREE_ORDER }"{ endif } id="o_disable_free_order">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button" onclick="saveMisc()">{ :m_save_btn }</button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_snapshot_enabled }</label>
+                                                <div class="col-sm-9">
+                                                    <input class="form-check-input form-control" type="checkbox" value="{ :snapshot_enabled }" { if :snapshot_enabled }checked="{ :snapshot_enabled }"{ endif } id="snapshot_enabled">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_snapshot_limit }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" id="snapshot_limit" value="{ :snapshot_limit }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label for="" class="col-sm-3 col-form-label">{ :m_snapshot_retention }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control" id="snapshot_retention" value="{ :snapshot_retention }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button" onclick="saveMisc()">{ :m_save_btn }</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <hr>
+                                <form class="form-sample">
+                                    <p>{ :m_cpu_title }</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_cpu_1 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_cores_default" value="{ :O_CORES_DEFAULT }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_cpu_2 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_cores_base" value="{ :O_CORES_BASE }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_cpu_3 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_cores_price_each_extra" value="{ :O_CORES_PRICE_EACH_EXTRA }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_cpu_4 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_cores_max" value="{ :O_CORES_MAX }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button" onclick="saveCores()">{ :m_save_btn }</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <hr>
+                                <form class="form-sample">
+                                    <p>{ :m_ram_title }</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_ram_1 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_ram_default" value="{ :O_RAM_DEFAULT }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_ram_2 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_ram_base" value="{ :O_RAM_BASE }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_ram_3 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_ram_price_each_extra" value="{ :O_RAM_PRICE_EACH_EXTRA }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_ram_4 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_ram_max" value="{ :O_RAM_MAX }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button" onclick="saveRAM()">{ :m_save_btn }</button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <hr>
+                                <form class="form-sample">
+                                    <p>{ :m_disk_title }</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_disk_1 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_disk_default" value="{ :O_DISK_DEFAULT }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_disk_2 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_disk_base" value="{ :O_DISK_BASE }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_disk_3 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_disk_price_each_extra" value="{ :O_DISK_PRICE_EACH_EXTRA }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group row">
+                                                <label class="col-sm-3 col-form-label">{ :m_disk_4 }</label>
+                                                <div class="col-sm-9">
+                                                    <input type="number" class="form-control" id="o_disk_max" value="{ :O_DISK_MAX }">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <button class="btn btn-success float-right" type="button" onclick="saveDisk()">{ :m_save_btn }</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- content-wrapper ends -->
+            <!-- partial:partials/_footer.html -->
+            { include("_views/partials/_footer.html") }
+            <!-- partial -->
+        </div>
+        <!-- main-panel ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+</div>
+<!-- container-scroller -->
+
+<!-- plugins:js -->
+{ js vendors/js/vendor.bundle.addons.js }
+<!-- endinject -->
+<!-- Plugin js for this page-->
+<!-- End plugin js for this page-->
+<!-- inject:js -->
+{ js js/off-canvas.js }
+{ js js/misc.js }
+<!-- endinject -->
+<!-- Custom js for this page-->
+<script>
+
+    function saveMisc() {
+        $.post("{ :app_url }api/admin/order/save/misc", 
+        {
+            "o_interface_speed": $("#o_interface_speed").val(),
+            "o_interpolate_ram": $('#o_interpolate_ram').prop('checked'),
+            "o_creation_time": $("#o_creation_time").prop('checked'),
+            "o_ipam_priority": $("#o_ipam_priority option:selected").val(),
+            "o_ipam_balance": $("#o_ipam_balance option:selected").val(),
+            "o_ipam_deployment": $("#o_ipam_deployment option:selected").val(),
+            "o_delete_suspended": $("#o_delete_suspended").val(),
+            "o_ipam_fail_no_usernet": $("#o_ipam_fail_no_usernet").prop('checked'),
+            "o_disable_free_order": $("#o_disable_free_order").prop('checked'),
+            "snapshot_retention": $("#snapshot_retention").val(),
+            "snapshot_enabled": $("#snapshot_enabled").prop('checked'),
+            "snapshot_limit": $("#snapshot_limit").val()
+        }, function(data) {
+            console.log(data);
+            toastr.success('{ :m_saved_misc }', '{ :m_saved }')
+        });
+    }
+
+    function saveCores() {
+        $.post("{ :app_url }api/admin/order/save/cores", 
+        {
+            "o_cores_default": $("#o_cores_default").val(),
+            "o_cores_base": $("#o_cores_base").val(),
+            "o_cores_price_each_extra": $("#o_cores_price_each_extra").val(),
+            "o_cores_max": $("#o_cores_max").val()
+        }, function(data) {
+            console.log(data);
+            toastr.success('{ :m_saved_cpu }', '{ :m_saved }')
+        });
+    }
+
+    function saveRAM() {
+        $.post("{ :app_url }api/admin/order/save/ram",
+        {
+            "o_ram_default": $("#o_ram_default").val(),
+            "o_ram_base": $("#o_ram_base").val(),
+            "o_ram_price_each_extra": $("#o_ram_price_each_extra").val(),
+            "o_ram_max": $("#o_ram_max").val()
+        }, function(data) {
+            console.log(data);
+            toastr.success('{ :m_saved_ram }', '{ :m_saved }')
+        });
+    }
+
+    function saveDisk() {
+        $.post("{ :app_url }api/admin/order/save/disk",
+        {
+            "o_disk_default": $("#o_disk_default").val(),
+            "o_disk_base": $("#o_disk_base").val(),
+            "o_disk_price_each_extra": $("#o_disk_price_each_extra").val(),
+            "o_disk_max": $("#o_disk_max").val()
+        }, function(data) {
+            console.log(data);
+            toastr.success('{ :m_saved_disk }', '{ :m_saved }')
+        });
+    }
+</script>
+</body>
+
+</html>

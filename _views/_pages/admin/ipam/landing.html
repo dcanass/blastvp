@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - IPAM</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">IPAM</h4>
+                                    <p class="card-description">
+                                        { :m_ipam_description }
+                                        <button class="btn btn-primary float-right" onclick="openDialog()">
+                                            { :m_ipam_new_button }
+                                        </button>
+                                    </p>
+                                    <br>
+                                    <h4>{ :m_ip4_ranges }</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        { :m_ip4_start }
+                                                    </th>
+                                                    <th>
+                                                        { :m_ip4_end }
+                                                    </th>
+                                                    <th>
+                                                        { :m_usable }
+                                                    </th>
+                                                    <th>
+                                                        { :m_scope }
+                                                    </th>
+                                                    <th>
+                                                        { :m_usage }
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                { foreach :ip in :ipv4 }
+                                                <tr class="clickable-row" style="cursor: pointer;"
+                                                    data-href="{ :app_url }admin/ipam/4/{ :ip.id }">
+                                                    <td>{ :ip.start }</td>
+                                                    <td>{ :ip.end }</td>
+                                                    <td>{ :ip.ips }</td>
+                                                    <td data-toggle="tooltip" data-placement="left"
+                                                        title="<?php if ($ip['scope'] == "node") {echo str_replace(',', ', ', $ip['nodes']);} else if ($ip['scope']=='user') { echo $ip['userName'] . ' - ' .$ip['userEmail']; } else {} ?>">
+                                                        <?= ucfirst($ip['scope']); ?>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-center mb-1">{ :ip.percentage }%</p>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-{ :ip.color }"
+                                                                role="progressbar" style="width: { :ip.percentage }%"
+                                                                aria-valuenow="{ :ip.percentage }" aria-valuemin="0"
+                                                                aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                { endforeach }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <br />
+                                    <br />
+                                    <h4>{ :m_ip6_ranges }</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>
+                                                        { :m_ip6_network }
+                                                    </th>
+                                                    <th>
+                                                        { :m_ip6_subnet_size }
+                                                    </th>
+                                                    <th>
+                                                        { :m_usable }
+                                                    </th>
+                                                    <th>
+                                                        { :m_scope }
+                                                    </th>
+                                                    <th>
+                                                        { :m_usage }
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                { foreach :ip in :ipv6 }
+                                                <tr class="clickable-row" style="cursor: pointer;"
+                                                    data-href="{ :app_url }admin/ipam/6/{ :ip.id }">
+                                                    <td>{ :ip.network }/{ :ip.prefix }</td>
+                                                    <td>/{ :ip.target }</td>
+                                                    <td>{ :ip.ips }</td>
+                                                    <td data-toggle="tooltip" data-placement="left"
+                                                        title="<?php if ($ip['scope'] == "node") echo str_replace(',', ', ', $ip['nodes']); ?>">
+                                                        <?= ucfirst($ip['scope']); ?>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-center mb-1">{ :ip.percentage }%</p>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-success" role="progressbar"
+                                                                style="width: { :ip.percentage }%"
+                                                                aria-valuenow="{ :ip.percentage }" aria-valuemin="0"
+                                                                aria-valuemax="100">
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                { endforeach }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+    <div class="modal fade" id="addNetwork" tabindex="-1" role="dialog" aria-labelledby="addNetworkLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addNetworkLabel">{ :m_add_new_range }</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Schliessen">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">
+                            { :m_ip4 }/{ :m_ip6 }
+                        </label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="type" value="">
+                                <option value="4">{ :m_ip4 }</option>
+                                <option value="6">{ :m_ip6 }</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="ipv4">
+
+                        <div class="form-group row">
+                            <label for="" class="col-sm-4 col-form-label">{ :m_ip4_start }</label>
+                            <div class="col-sm-8">
+                                <input id="ipv4_start" type="text" placeholder="10.10.10.10" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="" class="col-sm-4 col-form-label">{ :m_ip4_end }</label>
+                            <div class="col-sm-8">
+                                <input id="ipv4_end" type="text" placeholder="10.10.10.255" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">
+                                { :m_ip6_subnet_size }
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" value="" id="ipv4_size">
+                                    <?php foreach (range(-32, -1) as $a): ?>
+                                    <option value="<?= $a * -1 ?>">/<?= $a * -1 ?></option>
+                                    { endforeach }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="" class="col-sm-4 col-form-label">{ :m_add_gateway }</label>
+                            <div class="col-sm-8">
+                                <input id="ipv4_gateway" type="text" placeholder="10.10.10.1" class="form-control">
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div id="ipv6" style="display: none;">
+                        <div class="form-group row">
+                            <label for="" class="col-sm-4 col-form-label">{ :m_ip6_network }</label>
+                            <div class="col-sm-8">
+                                <input id="ipv6_network" type="text" placeholder="2a01:4f9:3a:1014::"
+                                    class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">
+                                { :m_add_prefix }
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="ipv6_prefix" value="">
+                                    <?php foreach (range(-128, -1) as $a): ?>
+                                    <option value="<?= $a * -1 ?>">/<?= $a * -1 ?></option>
+                                    { endforeach }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="" class="col-sm-4 col-form-label">{ :m_add_gateway }</label>
+                            <div class="col-sm-8">
+                                <input id="ipv6_gateway" type="text" placeholder="2a01:4f9:3a:1014::1"
+                                    class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">
+                                { :m_add_target_size }
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="ipv6_targetsize" value="">
+                                    <?php foreach (range(-128, -1) as $a): ?>
+                                    <option value="<?= $a * -1 ?>">/<?= $a * -1 ?></option>
+                                    { endforeach }
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">
+                            { :m_scope }
+                        </label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="scope" value="">
+                                <option value="global">{ :m_add_global }</option>
+                                <option value="node">{ :m_add_node }</option>
+                                <option value="user">{ :m_add_user }</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="nodeContainer" style="display: none;">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">
+                                { :m_add_nodes }
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="node" value="">
+                                    <option disabled selected>{ :m_add_select_node }</option>
+                                    { foreach :node in :nodes }
+                                    <option value="{ :node }">{ :node }</option>
+                                    { endforeach }
+                                </select>
+                                <div id="nodesDisplay" class="mt-2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="userContainer" style="display: none;">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">
+                                { :m_add_users }
+                            </label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="user" value="">
+                                    <option disabled selected>{ :m_add_select_user }</option>
+                                    { foreach :user in :users }
+                                    <option value="{ :user.id }">{ :user.username } ({ :user.email })</option>
+                                    { endforeach }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{ :m_close_btn }</button>
+                    <button type="button" class="btn btn-primary" onclick="create();">{ :m_save_btn }</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script>
+        nodes = [];
+        const openDialog = () => {
+            $("#addNetwork").modal('show')
+            $("#type").val("4");
+            $("#scope").val('global');
+            checkVisibleOptions();
+            checkNodeVisible();
+            nodes = [];
+            renderNodesList();
+            reset_v4();
+            reset_v6();
+        };
+
+        $("#scope").on('change', () => {
+            checkNodeVisible();
+        });
+
+        $("#type").on('change', () => {
+            checkVisibleOptions();
+        });
+
+        const checkNodeVisible = () => {
+            const val = $("#scope").val();
+            $("#nodeContainer").hide();
+            $("#userContainer").hide();
+            if (val == "node") {
+                $("#nodeContainer").show();
+            } else if (val == "user") {
+                $("#userContainer").show();
+            }
+        }
+
+        const checkVisibleOptions = () => {
+            const val = $("#type").val();
+            if (val == "4") {
+                $("#ipv4").show();
+                $("#ipv6").hide();
+            } else {
+                $("#ipv4").hide();
+                $("#ipv6").show();
+            }
+        }
+
+        $("#node").on('change', () => {
+            const node = $('#node').val();
+            if (nodes.includes(node) || !node) {
+                return;
+            }
+            nodes.push(node);
+            renderNodesList();
+        });
+
+        const renderNodesList = () => {
+            $("#nodesDisplay").empty();
+            nodes.map((node) => {
+                $("#nodesDisplay").append(
+                    `<span class="badge badge-pill badge-dark" onclick="removeNode('${node}')" data-node="${node}" style="cursor: pointer;">${node}<i class="mdi mdi-close"></i></span>`
+                );
+            })
+        }
+
+        const removeNode = (name) => {
+            const index = nodes.indexOf(name);
+            if (index != -1) nodes.splice(index, 1);
+            renderNodesList();
+        }
+
+        const reset_v4 = () => {
+            $("#ipv4_start").val('').removeClass('is-invalid').removeClass('is-valid');
+            $("#ipv4_end").val('').removeClass('is-invalid').removeClass('is-valid');
+            $("#ipv4_size").val('32');
+            $("#ipv4_gateway").val("").removeClass('is-invalid').removeClass('is-valid');
+        }
+
+        const reset_v6 = () => {
+            $("#ipv6_network").val('').removeClass('is-invalid').removeClass('is-valid');
+            $("#ipv6_prefix").val('128');
+            $("#ipv6_targetsize").val('128');
+            $("#ipv6_gateway").val('').removeClass('is-invalid').removeClass('is-valid');
+        }
+
+        const create = () => {
+            body = {};
+            // api/admin/ipam-create
+            const type = $("#type").val();
+            if (type == "4") {
+                let error = false;
+                // validate
+                if (!validateIPv4($("#ipv4_start").val())) {
+                    error = true;
+                    $("#ipv4_start").addClass('is-invalid').removeClass('is-valid')
+                } else {
+                    $("#ipv4_start").addClass('is-valid').removeClass('is-invalid')
+                }
+
+                if (!validateIPv4($("#ipv4_end").val())) {
+                    error = true;
+                    $("#ipv4_end").addClass('is-invalid').removeClass('is-valid')
+                } else {
+                    $("#ipv4_end").addClass('is-valid').removeClass('is-invalid')
+                }
+
+                if (!validateIPv4($("#ipv4_gateway").val())) {
+                    error = true;
+                    $("#ipv4_gateway").addClass('is-invalid').removeClass('is-valid')
+                } else {
+                    $("#ipv4_gateway").addClass('is-valid').removeClass('is-invalid')
+                }
+
+                if (error) {
+                    return
+                }
+                // ipv4 params
+                body = {
+                    type: '4',
+                    start: $("#ipv4_start").val(),
+                    end: $("#ipv4_end").val(),
+                    subnet: $("#ipv4_size option:selected").val(),
+                    gateway: $("#ipv4_gateway").val(),
+                }
+
+            } else {
+
+                let error = false;
+                // validate
+                if (!validateIPv6($("#ipv6_network").val())) {
+                    error = true;
+                    $("#ipv6_network").addClass('is-invalid').removeClass('is-valid')
+                } else {
+                    $("#ipv6_network").addClass('is-valid').removeClass('is-invalid')
+                }
+
+                if (!validateIPv6($("#ipv6_gateway").val())) {
+                    error = true;
+                    $("#ipv6_gateway").addClass('is-invalid').removeClass('is-valid')
+                } else {
+                    $("#ipv6_gateway").addClass('is-valid').removeClass('is-invalid')
+                }
+
+                if (error) {
+                    return
+                }
+
+                // ipv6 params
+                body = {
+                    type: '6',
+                    network: $("#ipv6_network").val(),
+                    prefix: $("#ipv6_prefix option:selected").val(),
+                    targetSize: $("#ipv6_targetsize option:selected").val(),
+                    gateway: $("#ipv6_gateway").val()
+                }
+            }
+
+            body.scope = $("#scope option:selected").val();
+            if (body.scope == "node") {
+                body.nodes = nodes.join(",");
+            }
+            if (body.scope == 'user') {
+                body.userId = $("#user").val()
+            }
+
+            $.post("{ :app_url }api/admin/ipam-create", body, (data) => {
+                console.log(data);
+                setTimeout(() => {
+                    window.location.reload()
+                }, 200)
+            })
+        }
+
+        const validateIPv4 = (ip) => {
+            return /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)
+        }
+
+        const validateIPv6 = (ip) => {
+            return /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/
+                .test(ip)
+        }
+    </script>
+
+</body>
+
+</html>

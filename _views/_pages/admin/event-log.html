@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{ :PAGE_TITLE } - { :m_title }</title>
+    <!-- plugins:css -->
+    { css vendors/iconfonts/mdi/css/materialdesignicons.min.css }
+    { css vendors/css/vendor.bundle.base.css }
+    { css vendors/css/vendor.bundle.addons.css }
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <?php if ($STYLE == "dark"): ?>
+    { css css/dark.css }
+    { else }
+    { css css/style.css }
+    { endif }
+    { js vendors/js/vendor.bundle.base.js }
+    <!-- endinject -->
+    <link rel="shortcut icon" href="/images/favicon.png" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        { include("_views/partials/_navbar.html") }
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- partial:partials/_sidebar.html -->
+            { include("_views/partials/_sidebar.html") }
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <div class="row">
+                        <div class="col-lg-12 grid-margin stretch-card">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">{ :m_title }</h4>
+                                    <p class="card-description">
+                                        { :m_desc }
+                                        <div class=" float-right">
+                                            <select name="type" id="type" class="form-control">
+                                                <option value="0" <?= $filter == '0' ? 'selected' : '' ?>>
+                                                    { :error_levels.0 }
+                                                </option>
+                                                <option value="1" <?= $filter == '1' ? 'selected' : '' ?>>
+                                                    { :error_levels.1 }
+                                                </option>
+                                                <option value="2" <?= $filter == '2' ? 'selected' : '' ?>>
+                                                    { :error_levels.2 }
+                                                </option>
+                                                <option value="3" <?= $filter == '3' ? 'selected' : '' ?>>
+                                                    { :error_levels.3 }
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </p>
+                                    <div class="table-responsive">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>
+                                                            { :m_tbl_1 }
+                                                        </th>
+                                                        <th>
+                                                            { :m_tbl_2 }
+                                                        </th>
+                                                        <th>
+                                                            { :m_tbl_3 }
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    { foreach :item in :items }
+                                                    <tr>
+                                                        <td>
+                                                            <?php 
+                                                            switch ($item['level']) {
+                                                                case "1":
+                                                                    // info
+                                                                    echo '<span class="text-primary"><i class="mdi mdi-information"></i>';
+                                                                    break;
+                                                                case "2": 
+                                                                    // warning
+                                                                    echo '<span class="text-warning"><i class="mdi mdi-alert"></i>';
+                                                                    break;
+                                                                case "3":
+                                                                    // error
+                                                                    echo '<span class="text-danger"><i class="mdi mdi-cancel"></i>';
+                                                                    break;
+                                                            }
+                                                            echo " " . $error_levels[$item['level']] . "</span>";
+                                                        ?></td>
+                                                        <td><?= isset($error_messages[$item['message']]) ? $error_messages[$item['message']] : $item['message'] ?>
+                                                        </td>
+                                                        <td><?= \Objects\Formatters::formatDateAbsolute($item['createdAt']); ?>
+                                                        </td>
+                                                    </tr>
+                                                    { endforeach }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        { :paging }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:partials/_footer.html -->
+                { include("_views/partials/_footer.html") }
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <!-- plugins:js -->
+    { js vendors/js/vendor.bundle.addons.js }
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    { js js/off-canvas.js }
+    { js js/misc.js }
+    <!-- endinject -->
+    <!-- Custom js for this page-->
+
+    <script>
+        $("#type").change(e => {
+            const val = $("#type").val();
+
+            window.location = replaceUrlParam(window.location.href, "filter", val);
+        });
+
+        const goToPage = (page) => {
+            window.location = replaceUrlParam(window.location.href, "page", page);
+        }
+
+        function replaceUrlParam(url, paramName, paramValue) {
+            console.log(url);
+            if (paramValue == null) {
+                paramValue = '';
+            }
+            var pattern = new RegExp('\\b(' + paramName + '=).*?(&|#|$)');
+            if (url.search(pattern) >= 0) {
+                return url.replace(pattern, '$1' + paramValue + '$2');
+            }
+            url = url.replace(/[?#]$/, '');
+            return url + (url.indexOf('?') > 0 ? '&' : '?') + paramName + '=' + paramValue;
+        }
+    </script>
+
+</body>
+
+</html>
